@@ -12,7 +12,7 @@ Najvyššia dosiahnuteľná vernosť neznamená vymyslieť nepublikovaný propri
 
 ## 1. Presné zadanie a hranice práce
 
-Oficiálne zadanie vyžaduje: (1) analyzovať princípy VANET, inteligentnej dopravy a spôsoby komunikácie, (2) analyzovať konštelácie LEO a stručne relevantné simulačné nástroje, (3) navrhnúť infraštruktúru VANET s integrovanou satelitnou komunikáciou, (4) pripraviť scenáre výkonnostného testovania, (5) infraštruktúru a scenáre implementovať a (6) vykonať experimenty a zhodnotiť výsledky. Motiváciou je spojenie vozidiel medzi sebou, s infraštruktúrou a internetom, vrátane ciest cez Iridium, Globalstar alebo Starlink. [Presné znenie zadania a usmernenie vedúceho](zadanie-bp.md) sú uložené samostatne, aby sa rozsah práce dal kedykoľvek skontrolovať.
+Oficiálne zadanie vyžaduje: (1) analyzovať princípy VANET, inteligentnej dopravy a spôsoby komunikácie, (2) analyzovať konštelácie LEO a stručne relevantné simulačné nástroje, (3) navrhnúť infraštruktúru VANET s integrovanou satelitnou komunikáciou, (4) pripraviť scenáre výkonnostného testovania, (5) infraštruktúru a scenáre implementovať a (6) vykonať experimenty a zhodnotiť výsledky. Motiváciou je spojenie vozidiel medzi sebou, s infraštruktúrou a internetom, vrátane ciest cez Iridium, Globalstar alebo Starlink. [Presné znenie zadania](zadanie-bp.md) je uložené samostatne, aby sa rozsah práce dal kedykoľvek skontrolovať.
 
 ### Výber satelitného rozšírenia ns-3
 

@@ -7,9 +7,6 @@ Aktuálny simulátor pripravuje pohyb vozidiel v SUMO, CAM a DENM vo Vanetza a p
 - [Odovzdanie a použitie simulátora](docs/simulator-odovzdanie.md)
 - [Technická správa k aktuálnej verzii](docs/technicka-sprava-simulatora-2026-11-18.md)
 - [Oficiálne zadanie BP](docs/zadanie-bp.md)
-- [Overenie aktuálneho balíka a prehratia](docs/experiments/simulator-audit-2026-11-18.md)
-- [Upratanie kódu a opakované overenie](docs/experiments/simulator-code-cleanup-2026-11-03.md)
-- [Hranice vernosti](docs/decisions/stav-vernosti.md)
 
 Spustenie aktuálneho editora v tomto vývojovom projekte:
 
