@@ -203,8 +203,8 @@ def create(destination: Path, source_revision: str | None = None) -> dict:
                          ("portable_install_shortcut.py", "install_shortcut.py"),
                          ("bp-simulator.svg", "bp-simulator.svg")):
         copy(ROOT / "scripts" / source, destination / name)
-    copy(ROOT / "docs/simulator-odovzdanie.md", destination / "README.md")
-    copy(ROOT / "docs/technicka-sprava-simulatora-2026-11-18.md", destination / "TECHNICKA-SPRAVA.md")
+    copy(ROOT / "docs/instalacia-a-pouzitie.md", destination / "README.md")
+    copy(ROOT / "docs/technicka-sprava.md", destination / "TECHNICKA-SPRAVA.md")
     for link in (destination / "engine/build/openssl-dev-local").rglob("*"):
         if link.is_symlink() and not link.exists():
             link.unlink()

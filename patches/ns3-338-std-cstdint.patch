@@ -1,7 +1,0 @@
-diff --git a/src/wifi/model/sta-wifi-mac.h b/src/wifi/model/sta-wifi-mac.h
-index 7203d4c..35594cf 100644
---- a/src/wifi/model/sta-wifi-mac.h
-+++ b/src/wifi/model/sta-wifi-mac.h
-@@ -28 +28,2 @@
-+#include <cstdint>
- #include <set>

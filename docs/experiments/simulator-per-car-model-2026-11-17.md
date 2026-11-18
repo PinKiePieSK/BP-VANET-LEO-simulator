@@ -1,7 +1,0 @@
-# Individuálny model áut — 17. 11. 2026
-
-Každé auto má v paneli sedem polí modelu SUMO: zrýchlenie, brzdenie, σ, dĺžku, šírku, minimálny odstup a faktor rýchlosti. Neupravené polia dedia spoločný model scenára; vlastná úprava prepíše len zmenený parameter. Tlačidlo **Predvolené** odstráni všetky individuálne úpravy vybraného auta. Spoločný model zostáva nastaviteľný v Technických parametroch a pri každom aute sa zobrazuje účinná hodnota. OSM globálny záznam uchová individuálne hodnoty pri posune pracovného výrezu.
-
-`simulator_sumo.validate` povoľuje len uvedené parametre v rovnakých rozsahoch ako spoločný model. `make_inputs` vytvára pre každé auto jeho účinný `vType`. Export mobility používa individuálnu dĺžku a šírku aj pre CAM. Skúška s dvoma autami overila rozdielne `vType` hodnoty a reálny beh SUMO/FCD/waypoints potvrdil rozmery CAM 4,4 × 2,1 m oproti 5,0 × 1,8 m. Test OSM križovatky a krátkeho úseku prešiel. Rozhranie sa nekalibruje voči meranej doprave; hodnoty sú parametre modelu, nie namerané vlastnosti.
-
-Zdroj, pracovný runtime a prenosný balík majú zhodné bajty ôsmich zmenených aktívnych súborov. Manifest balíka overil 10 231 súborov a odkazov; ZIP prešiel kontrolou SHA-256. Študijná kópia 64 aktívnych súborov prešla generovaním a obsahovou kontrolou. Už bežiaci Python server musí po uložení rozpracovaného návrhu používateľ reštartovať cez ikonu, aby načítal zmenené moduly.

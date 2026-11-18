@@ -19,9 +19,8 @@ Inštalátor zostaví pribalené závislosti, overí beh a vytvorí spúšťaciu
 
 Editor otvorí ikona **BP Simulátor**. Na aktualizáciu zo schválenej vetvy `main` zavri editor a spusti ikonu **BP Simulátor – aktualizovať** alebo `bash update.sh` v rozbalenom balíku. Aktualizácia vytvorí nový runtime; staršie behy zostanú pri verzii, v ktorej vznikli. Zmeny pribalených závislostí a inštalačných skriptov sa vydávajú v novom ZIPe.
 
-- [Inštalácia a obsluha](docs/simulator-odovzdanie.md)
-- [Technická dokumentácia](docs/technicka-sprava-simulatora-2026-11-18.md)
-- [Zadanie práce](docs/zadanie-bp.md)
+- [Inštalácia a obsluha](docs/instalacia-a-pouzitie.md)
+- [Technická dokumentácia](docs/technicka-sprava.md)
 
 ## Vývojový zdroj
 
