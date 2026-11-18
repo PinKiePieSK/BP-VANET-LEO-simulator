@@ -1,0 +1,26 @@
+# Aktuálny stav simulátora BP
+
+**Aktualizované 26. 10. 2026.** Tento súbor je rýchla orientácia. Nový [audit celého simulátora a plán U0–U8](plan-zjednoteny-simulator-2026-10-26.md) je aktívnym poradím ďalšej práce; [pôvodný pracovný plán](pracovny-plan-simulatora.md) drží uzavreté P/V dôkazy. Predchádzajúca inventúra stavu z 24. 10. je zachovaná v [archíve](archive/stav-a-dalsi-postup-pred-p6-20261026.md); jej vtedy otvorené úlohy sa nemajú čítať ako súčasný stav.
+
+## Čo je overené
+
+- **P0:** spoločná identita reportu, 60 s výskumný deadline, denominator, zdrojový register a hranice tvrdenia [sú pripnuté](experiments/p0-experiment-contract-2026-10-25.md).
+- **P1:** šesť úplných CAM→RSU→ICB1→UT→dve LEO→aplikácia trás a presná spätná GRA1/I2V1 odpoveď prešlo raw kontrolou; tri záporné vetvy oddeľujú blokáciu, chýbajúcu ISL a návratovú trasu [v denníku](experiments/p1-two-leo-roundtrip-2026-10-25.md).
+- **P2:** [mestský/OSM pilot](experiments/p2-urban-osm-paired-2026-10-25.md), [riadené hopové straty](experiments/p2-controlled-hop-loss-2026-10-25.md) a [fronta, DVB drop, deadline, CAM/DCC](experiments/p2-completion-2026-10-26.md) majú pozitívne i záporné kontroly. Model nie je kalibrovanou mestskou premávkou ani úplnou ETSI konformitou.
+- **P3:** [jeden UT](experiments/p3-single-ut-handover-2026-10-26.md) mení pripojenie zo SAT0 na SAT1 pri rovnakej MAC/IP a s obojsmernou kvalifikačnou sondou. Je to výskumné preladenie generického DVB, nie operátorský handover.
+- **P4:** [Iridium, Globalstar a Starlink](experiments/p4-service-profiles-2026-10-26.md) majú oddelené servisné obaly a explicitne neznáme parametre. Sú označené `scenario/sensitivity`.
+- **P5:** [finálna párovaná matica](experiments/p5-final-matrix-2026-10-26.md) obsahuje 12 jednotiek, 144 natívnych behov, 3 744 servisných event riadkov, 64 súhrnov a dva reprodukovateľné grafy. Šesť seedov tvorí klastre bootstrap intervalu. Výsledok nevytvára prevádzkové poradie operátorov.
+- **V0–V8:** modulárna vetva má [V1 kontrakt](experiments/v1-scenario-contract-2026-10-26.md), [V2 natívny aplikáčno-satelitný beh](experiments/v2-native-scenario-2026-10-26.md), [V3 časovú LEO topológiu](experiments/v3-leo-topology-2026-10-26.md), [V4 generickú DVB citlivosť](experiments/v4-generic-dvb-2026-10-26.md), [V5 pozemný CAM/DCC/rádiový model](experiments/v5-ground-2026-10-26.md), [V6 tri odlišné servisné architektúry](experiments/v6-services-2026-10-26.md), [V7 per-event výsledky s priznanou neistotou](experiments/v7-result-api-2026-10-26.md) a [V8 odovzdávací CLI/offline balík](experiments/v8-release-2026-10-26.md). Každá vrstva má samostatný raw dôkaz a obmedzenie tvrdenia. V8 je vykonateľný v úzkej referenčnej podmnožine; **V3–V6 mechanizmy nie sú spojené v jednej všeobecnej simulácii**. Integrácia U0–U8 je technicky riešiteľná aj pred výberom finálnych scenárov s vedúcim.
+- **U0:** [jednotný scenárový, schopnostný, identitný a výsledkový kontrakt](experiments/u0-unified-contract-2026-10-26.md) má štyri znovu overiteľné preflight plány a päť cielených testov. Jeho pôvodný výstup bol iba preflight kontrakt.
+- **U1:** [prvý skutočný jednotný paketový engine](experiments/u1-integrated-cam-leo-2026-10-26.md) spája viac vozidiel, V5 CAM/DCC/OCB, RSU/ICB1 a natívny generický DVB/GRA1/I2V1 v jednom čase. Deväť behov a päť mutácií prešli raw checkerom; tento historický rez má jeden aktívny RSU.
+- **U2:** pôvodný [ohraničený dôkaz](experiments/u2-multi-rsu-backhaul-2026-10-26.md) vykonal 23 vetiev. [Nástupnícky spoločný beh](experiments/u2-variable-rsu-2026-10-26.md) prijal 26 vetiev pri 1/2/3 RSU a 3/5/12/24 autách; počty určuje scenár. Checker prešiel a šesť sémantických mutácií odmietol. Dnes je podporovaný najviac 50‑uzlový V5 rádiový vstup a spoločný pevný UT. Satelitná cesta používa presne dva pripnuté objekty; variabilný pool, ISL graf a routing sú záväznou bránou U3.
+
+Jediný aktívny runtime je **ns-3.38/SNS-3 3.38** v `vendor/ns-3.38-ocb-eval`. Checkout 3.48 bol odstránený; výsledky a archívy s historickými verziami zostávajú zachované. Aktuálne spúšťacie príkazy sú v [reprodukcii](reprodukcia.md), používanie editora v [návode](navod-na-pouzitie.md). Všeobecný editorový JSON je `schema_only`; sieťové tlačidlá vyžadujú prísnu podporovanú podmnožinu s runnerom a checkerom. Súvislý rukopis so zdrojmi, metodikou, výsledkami a limitmi je v [texte BP](../thesis/rozpracovana-praca.md).
+
+## Čo ešte obmedzuje použitie
+
+Komerčné služby nemajú porovnateľné nezávislé raw meranie rovnakej zostavy, času, miesta a plánu. Aktívne lúče, attach, gateway, scheduler, proprietárne RF/MAC a reálna záťaž preto nie sú validované. OSM cesta má syntetickú dopravu a nekalibrovaný rádiový model. Dve finálne UTC epochy sú vzdialené iba 92 s. Bez ďalšieho merania nemožno z výsledkov vyvodzovať prevádzkovú dostupnosť, PDR, p99, poradie Starlink/Iridium/Globalstar ani zníženie nehôd.
+
+## Odovzdanie P6
+
+P6 je **hotová**: editor oddeľuje `executed`/`schema_only`, aktuálne návody a súvislý rukopis sú zosúladené, izolovaná kópia prešla čistou obnovou, nový P1/P5 smoke experiment aj finálny preflight. Dôkazy a presné hranice sú v [pláne](pracovny-plan-simulatora.md) a [denníku P6](experiments/p6-handoff-2026-10-26.md).

@@ -1,0 +1,37 @@
+{
+  "beam": {
+    "available": true,
+    "gain_dbi": 17,
+    "user_id": 30
+  },
+  "duration_s": 25,
+  "gateway": {
+    "height_m": 0,
+    "lat_deg": 65,
+    "lon_deg": 20,
+    "status": "proxy"
+  },
+  "group": "globalstar",
+  "id": "bratislava-globalstar",
+  "isl": {
+    "allowed": true,
+    "capacity_bps": 1000000000
+  },
+  "mask_deg": 10,
+  "max_age_h": 48,
+  "packet_policy": "reference_single_ut",
+  "pair": "auto",
+  "sample_s": 0.5,
+  "schema": "v3-leo-topology-1",
+  "snapshot": {
+    "manifest_sha256": "d28ad3618304780d3cd118e83e8e8a2e88c14d015fa022c3082ba7b2f624d826",
+    "path": "data/orbits/20261022T124815Z-retlector"
+  },
+  "ut": {
+    "height_m": 0,
+    "lat_deg": 48.1492687,
+    "lon_deg": 17.1099619,
+    "status": "proxy"
+  },
+  "utc_origin": "2026-10-22T12:46:32Z"
+}

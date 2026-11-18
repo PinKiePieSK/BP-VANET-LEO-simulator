@@ -1,0 +1,99 @@
+{
+  "alert_target_rsu": "",
+  "demand": "data/inputs/simulator-examples/ground-demand.json",
+  "denm_events": [
+    {
+      "at_s": 1.0,
+      "operation": "new",
+      "radius_m": 1500,
+      "repetition_ms": 1000,
+      "sequence": 1,
+      "validity_s": 15
+    }
+  ],
+  "link_policy": {
+    "beam_half_angle_deg": 90.0,
+    "compensation": 0.98,
+    "doppler_tolerance_hz": 20000.0,
+    "rf_hz": 1621250000.0,
+    "steering_rate_deg_s": 90.0,
+    "zenith_cone_deg": 90.0
+  },
+  "mode": "unified",
+  "node_policy": {
+    "cars": {
+      "car0": {
+        "ground": "all"
+      },
+      "car1": {
+        "ground": "all"
+      },
+      "car2": {
+        "ground": "all"
+      },
+      "car3": {
+        "ground": "all"
+      },
+      "car4": {
+        "ground": "all"
+      }
+    },
+    "rsus": {
+      "rsu0": {
+        "ground": true,
+        "satellite_backhaul": false
+      },
+      "rsu1": {
+        "ground": true,
+        "satellite_backhaul": false
+      },
+      "rsu2": {
+        "ground": true,
+        "satellite_backhaul": false
+      }
+    }
+  },
+  "ns3_run": 1,
+  "radio": {
+    "mode": "urban_los",
+    "noise_figure_db": 7,
+    "tx_power_dbm": 20
+  },
+  "rsu_id": "rsu0",
+  "sample_count": 600,
+  "satellite": {
+    "antenna_model": "public-v1",
+    "beam_gain_dbi": 17.0,
+    "catalog_ids": [],
+    "dynamic_physical": true,
+    "feeder_sat": 0,
+    "forward_isl_bps": 1000000000,
+    "forward_queue_packets": 100,
+    "gateway": [
+      37.8167,
+      22.6667,
+      0.0
+    ],
+    "handover_target_sat": 0,
+    "initial_serving_sat": 0,
+    "isls": [],
+    "mask_deg": 0.5,
+    "orbit_group": "iridium-NEXT",
+    "orbit_snapshot": {
+      "manifest_sha256": "067b9f58d9cf14ffb16730535226cbb1cbcef0289c5fa7119a440bad8f013556",
+      "path": "data/orbits/20261101T113716Z-celestrak"
+    },
+    "reverse_isl_bps": 1000000000,
+    "reverse_queue_packets": 100,
+    "terminal_mounts": {},
+    "ut_power_dbw": 4.0
+  },
+  "satellite_enabled": false,
+  "scenario_id": "simulator-example",
+  "schema_version": 7,
+  "seed": 314161,
+  "source_id": "car0",
+  "time_policy": "ready_at_t0_full_duration",
+  "utc_origin": "2026-11-01T11:37:16Z",
+  "world_template": "data/inputs/simulator-examples/ground-world.json"
+}

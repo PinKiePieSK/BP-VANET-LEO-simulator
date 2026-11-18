@@ -1,0 +1,37 @@
+{
+  "schema": "v3-leo-topology-1",
+  "id": "bratislava-auto",
+  "snapshot": {
+    "path": "data/orbits/20261022T124815Z-retlector",
+    "manifest_sha256": "d28ad3618304780d3cd118e83e8e8a2e88c14d015fa022c3082ba7b2f624d826"
+  },
+  "group": "iridium-NEXT",
+  "utc_origin": "2026-10-22T12:46:32Z",
+  "duration_s": 25,
+  "sample_s": 0.5,
+  "max_age_h": 48,
+  "mask_deg": 10,
+  "ut": {
+    "lat_deg": 48.1492687,
+    "lon_deg": 17.1099619,
+    "height_m": 0,
+    "status": "proxy"
+  },
+  "gateway": {
+    "lat_deg": 65,
+    "lon_deg": 20,
+    "height_m": 0,
+    "status": "proxy"
+  },
+  "pair": "auto",
+  "beam": {
+    "user_id": 30,
+    "gain_dbi": 17,
+    "available": true
+  },
+  "isl": {
+    "allowed": true,
+    "capacity_bps": 1000000000
+  },
+  "packet_policy": "reference_single_ut"
+}

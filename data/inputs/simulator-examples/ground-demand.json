@@ -1,0 +1,122 @@
+{
+  "kind": "synthetic_trips",
+  "provenance": "Designed road corridor with east-west flow and southern branch; modelled traffic, not measured demand",
+  "schema_version": 1,
+  "vehicles": [
+    {
+      "depart_pos_m": 100,
+      "depart_s": 0,
+      "depart_speed_mps": 10,
+      "id": "car0",
+      "route": [
+        {
+          "direction": "forward",
+          "segment": "approach"
+        },
+        {
+          "direction": "forward",
+          "segment": "middle"
+        },
+        {
+          "direction": "forward",
+          "segment": "east"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 150,
+      "depart_s": 0,
+      "depart_speed_mps": 8,
+      "id": "car1",
+      "route": [
+        {
+          "direction": "forward",
+          "segment": "west"
+        },
+        {
+          "direction": "forward",
+          "segment": "approach"
+        },
+        {
+          "direction": "forward",
+          "segment": "middle"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 100,
+      "depart_s": 0,
+      "depart_speed_mps": 8,
+      "id": "car2",
+      "route": [
+        {
+          "direction": "reverse",
+          "segment": "east"
+        },
+        {
+          "direction": "reverse",
+          "segment": "middle"
+        },
+        {
+          "direction": "reverse",
+          "segment": "approach"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 150,
+      "depart_s": 0,
+      "depart_speed_mps": 8,
+      "id": "car3",
+      "route": [
+        {
+          "direction": "reverse",
+          "segment": "lower"
+        },
+        {
+          "direction": "reverse",
+          "segment": "downhill"
+        },
+        {
+          "direction": "reverse",
+          "segment": "branch"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 100,
+      "depart_s": 0,
+      "depart_speed_mps": 8,
+      "id": "car4",
+      "route": [
+        {
+          "direction": "reverse",
+          "segment": "downhill"
+        },
+        {
+          "direction": "reverse",
+          "segment": "branch"
+        },
+        {
+          "direction": "reverse",
+          "segment": "middle"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    }
+  ]
+}

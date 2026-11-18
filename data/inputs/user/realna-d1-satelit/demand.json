@@ -1,0 +1,181 @@
+{
+  "kind": "synthetic_trips",
+  "provenance": "Ru\u010dne pl\u00e1novan\u00e9 protiid\u00face pr\u00fady na skuto\u010dn\u00fdch OSM \u00fasekoch D1 pri Bratislave; r\u00fdchlosti pod\u013ea dia\u013enice, nie meran\u00e1 prem\u00e1vka",
+  "schema_version": 1,
+  "vehicles": [
+    {
+      "depart_pos_m": 120,
+      "depart_s": 0,
+      "depart_speed_mps": 28,
+      "id": "car0",
+      "route": [
+        {
+          "direction": "forward",
+          "segment": "osm53086a3398d5046f1ec1"
+        },
+        {
+          "direction": "forward",
+          "segment": "osm47c64b1202f265ed43d1"
+        },
+        {
+          "direction": "forward",
+          "segment": "osmc96eb1c0bb7c7713231b"
+        },
+        {
+          "direction": "forward",
+          "segment": "osma1e0ed012b9fb77cf074"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 220,
+      "depart_s": 0,
+      "depart_speed_mps": 27,
+      "id": "car1",
+      "route": [
+        {
+          "direction": "forward",
+          "segment": "osm53086a3398d5046f1ec1"
+        },
+        {
+          "direction": "forward",
+          "segment": "osm47c64b1202f265ed43d1"
+        },
+        {
+          "direction": "forward",
+          "segment": "osmc96eb1c0bb7c7713231b"
+        },
+        {
+          "direction": "forward",
+          "segment": "osma1e0ed012b9fb77cf074"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 320,
+      "depart_s": 0,
+      "depart_speed_mps": 26,
+      "id": "car2",
+      "route": [
+        {
+          "direction": "forward",
+          "segment": "osm53086a3398d5046f1ec1"
+        },
+        {
+          "direction": "forward",
+          "segment": "osm47c64b1202f265ed43d1"
+        },
+        {
+          "direction": "forward",
+          "segment": "osmc96eb1c0bb7c7713231b"
+        },
+        {
+          "direction": "forward",
+          "segment": "osma1e0ed012b9fb77cf074"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 300,
+      "depart_s": 0,
+      "depart_speed_mps": 27,
+      "id": "car3",
+      "route": [
+        {
+          "direction": "forward",
+          "segment": "osmae955ae5b1bf8900fca4"
+        },
+        {
+          "direction": "forward",
+          "segment": "osm75a58d68c65ea0755a37"
+        },
+        {
+          "direction": "forward",
+          "segment": "osmb57046ddee9405ea953c"
+        },
+        {
+          "direction": "forward",
+          "segment": "osmf1ceb480d65f002e4269"
+        },
+        {
+          "direction": "forward",
+          "segment": "osm8f6a3cbb4608b4cacd65"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 420,
+      "depart_s": 0,
+      "depart_speed_mps": 26,
+      "id": "car4",
+      "route": [
+        {
+          "direction": "forward",
+          "segment": "osmae955ae5b1bf8900fca4"
+        },
+        {
+          "direction": "forward",
+          "segment": "osm75a58d68c65ea0755a37"
+        },
+        {
+          "direction": "forward",
+          "segment": "osmb57046ddee9405ea953c"
+        },
+        {
+          "direction": "forward",
+          "segment": "osmf1ceb480d65f002e4269"
+        },
+        {
+          "direction": "forward",
+          "segment": "osm8f6a3cbb4608b4cacd65"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 530,
+      "depart_s": 0,
+      "depart_speed_mps": 25,
+      "id": "car5",
+      "route": [
+        {
+          "direction": "forward",
+          "segment": "osmae955ae5b1bf8900fca4"
+        },
+        {
+          "direction": "forward",
+          "segment": "osm75a58d68c65ea0755a37"
+        },
+        {
+          "direction": "forward",
+          "segment": "osmb57046ddee9405ea953c"
+        },
+        {
+          "direction": "forward",
+          "segment": "osmf1ceb480d65f002e4269"
+        },
+        {
+          "direction": "forward",
+          "segment": "osm8f6a3cbb4608b4cacd65"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "base_world": "data/inputs/editable-road-v2/packet-subset.json",
+  "cam_receiver_policy": "all_other_radio_nodes",
+  "cam_sender_policy": "all_its_g5_vehicles",
+  "cases": [
+    {
+      "dcc": false,
+      "demand": "data/inputs/v5-ground/synthetic-03-trips.json",
+      "first_sample_s": 10,
+      "id": "cars03",
+      "radio_mode": "urban_los"
+    },
+    {
+      "dcc": false,
+      "demand": "data/inputs/v5-ground/synthetic-12-trips.json",
+      "first_sample_s": 10,
+      "id": "cars12",
+      "radio_mode": "urban_los"
+    },
+    {
+      "dcc": false,
+      "demand": "data/inputs/v5-ground/synthetic-24-trips.json",
+      "first_sample_s": 10,
+      "id": "cars24",
+      "radio_mode": "urban_los"
+    }
+  ],
+  "dcc_policy": {
+    "high_cbr": 0.012,
+    "high_interval_ms": 500,
+    "low_cbr": 0.004,
+    "mid_interval_ms": 250
+  },
+  "noise_figure_db": 7,
+  "phase_us": 1000,
+  "rsu_id": "rsu0",
+  "run": 1,
+  "sample_count": 30,
+  "sample_step_s": 0.1,
+  "schema_version": 1,
+  "seed": 314159,
+  "source_id": "car0",
+  "tx_power_dbm": 20
+}

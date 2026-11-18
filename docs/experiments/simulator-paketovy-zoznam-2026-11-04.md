@@ -1,0 +1,17 @@
+# Zoznam paketov za celý beh — 4. 11. 2026
+
+Surový záznam pre panel **Paketové udalosti** uchováva celý beh bez pôvodného limitu 30 záznamov. Zobrazenie je viazané na aktuálny čas replaya. Nová cesta `GET /api/simulator/runs/<id>/events` číta po nezávislom overení behu všetky riadky surovej paketovej stopy s identifikátorom paketu od logického času 0 do konca simulácie. Vracia 256 položiek na stránku; časovo zoradený index uchováva iba pozície v CSV. Voliteľný filter dvojice uzlov vracia všetky potvrdené príjmy na zvolenom spojení, nielen linky vzorkované pre kreslenie mapy.
+
+Prehliadač vykresľuje iba viditeľné riadky pevného posuvného zoznamu. Prechod na začiatok alebo koniec práve odhaleného zoznamu nezmení čas replaya. Kliknutie na riadok replay pozastaví, nastaví čas paketu a otvorí jeho surové kroky a dekódovanie. Viacero riadkov môže patriť tomu istému paketu, pretože stopa zaznamenáva jednotlivé fázy prenosu a príjmu. Anonymné diagnostické PHY riadky bez identifikátora paketu zostávajú v surovom CSV, ale do klikateľného zoznamu nevstupujú.
+
+Overenie na štyroch uložených behoch: API v satelitnom D1 behu vrátilo **16 940** identifikovateľných udalostí, prvú pri 0,001 s a poslednú pri 59,904 s. Filter `rsu1 → car3` vrátil jeden potvrdený príjem DENM pri 5,135661 s. Syntetická 70 000 riadková stopa potvrdila, že index nemá pôvodný limit 30 000 udalostí. V prehliadači prenosného runtime sa zobrazil počet 16 940; kláves End ukázal posledné udalosti pri 59,904 s, kým replay zostal na 0,00 s. Kliknutie na posledný paket presunulo replay na 59,90 s a otvorilo jeho 13 surových krokov. Študijná kópia prešla `refresh_study_code.py --check`.
+
+Aktuálny prenosný balík na ploche obsahuje server, API a UI zmeny. Manifest overil 10 226 súborov a odkazov; ZIP prešiel `testzip()` aj SHA-256 kontrolou. Aktuálne štyri zmenené runtime súbory boli synchronizované do pripraveného pracovného runtime a `PACKAGE-ID` bol aktualizovaný. Bežiace okno Firefoxa si načíta nový JavaScript a nový Python server po zavretí a opätovnom spustení ikonou.
+
+## Doplnenie: pribúdanie podľa replaya
+
+Prvá stránka API môže obsahovať kompaktný chronologický index časov všetkých udalostí (`uvarint-delta-us-v1`). Prehliadač ho načíta raz. Pri prehrávaní binárnym vyhľadávaním presne určí počet udalostí s časom najviac aktuálny čas replaya. Zobrazené riadky pribúdajú, ich panel sa automaticky posúva k novým udalostiam; ručný posun na staršie riadky automatické sledovanie preruší. Pri pauze zostanú zobrazené iba udalosti, ktoré už nastali. Posun časovej osi dopredu alebo dozadu upraví hranicu zobrazenia. Na konci sa replay zastaví s úplným zoznamom. Surová stopa a verifier zostávajú nezmenené.
+
+V skutočnom 60 s satelitnom D1 replayi začal panel s nulou udalostí, pri 6,43 s zobrazil 1 796 a pri pauze na 11,85 s 3 604 udalostí. Po ručnom posune panelu na začiatok zostal čas 11,85 s; posun časovej osi na 60 s zobrazil všetkých 16 940 a návrat na 0 s opäť nulu. Časový index mal 20 508 bajtov a po dekódovaní presne 16 940 časov; prvý a posledný sa zhodovali s raw CSV.
+
+Aktualizovaný prenosný runtime prešiel HTTP skúškou s 16 940 udalosťami a 27 344 znakmi zakódovaného časového indexu. V jeho prehliadači pri 0,23 s pribudlo 64 udalostí, pri pauze na 4,92 s zostalo 1 321; posledná zobrazená bola pri 4,906 s. Balík má 10 226 súborov a odkazov, ZIP prešiel úplným `testzip()` a jeho SHA-256 je `38d543f3294accccbcc06b7f7630814064b572406b7e4bf895bc93f3dab116f9`.

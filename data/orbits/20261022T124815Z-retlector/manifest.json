@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "fetched_utc": "2026-10-22T12:49:43.719531+00:00",
+  "provider": "retlector",
+  "upstream": "CelesTrak GP",
+  "format": "CelesTrak GP OMM-keyword JSON, raw bytes gzip with mtime 0",
+  "time_system": "UTC; CelesTrak omits redundant TIME_SYSTEM in JSON/CSV GP",
+  "groups": {
+    "starlink": {
+      "source_url": "https://retlector.eu/starlink/json",
+      "file": "starlink.json.gz",
+      "mirror_cache_status": null,
+      "retrieved_utc": "2026-10-22T12:48:17.256309+00:00",
+      "raw_sha256": "c86935dbf997ca997a9bc6029d794b693a6d0e09140c1af045e0025f8b5a0f36",
+      "gzip_sha256": "9c304869d7d3e738a4376bd6edd689261f24317258b88879fcfdfcd9a65d32e1",
+      "objects": 11121,
+      "earliest_epoch_utc": "2026-10-19T01:37:36.989472+00:00",
+      "latest_epoch_utc": "2026-10-21T14:15:30.418848+00:00",
+      "catalog_numbers_over_99999": 473
+    },
+    "iridium-NEXT": {
+      "source_url": "https://retlector.eu/iridium-NEXT/json",
+      "file": "iridium-NEXT.json.gz",
+      "mirror_cache_status": "Group: iridium-NEXT\nLast Updated: Wed, 21 Oct 2026 18:31:52 GMT\nAge: 65871 seconds\nStatus: Stale\nNext Update: Thu, 22 Oct 2026 06:31:52 GMT",
+      "retrieved_utc": "2026-10-22T12:49:44.930216+00:00",
+      "raw_sha256": "059f731d2f8d98e2d60cb43b2a1d4ae7b88e91cf2740dffd2b772a09a8b33388",
+      "gzip_sha256": "7a2db40c02e1857064679c6798fc6859de00b7efd4d17e0f7ec082a168bee14e",
+      "objects": 80,
+      "earliest_epoch_utc": "2026-10-07T00:17:47.763168+00:00",
+      "latest_epoch_utc": "2026-10-21T07:34:18.897600+00:00",
+      "catalog_numbers_over_99999": 0
+    },
+    "globalstar": {
+      "source_url": "https://retlector.eu/globalstar/json",
+      "file": "globalstar.json.gz",
+      "mirror_cache_status": "Group: globalstar\nLast Updated: Wed, 21 Oct 2026 20:40:03 GMT\nAge: 58181 seconds\nStatus: Stale\nNext Update: Thu, 22 Oct 2026 08:40:03 GMT",
+      "retrieved_utc": "2026-10-22T12:49:46.031811+00:00",
+      "raw_sha256": "99844314d711a0028cd03a045f13699a6f6460039d8a859cb03e62ff972f17af",
+      "gzip_sha256": "3c486c9b4b807f29065c4d21c9d1b37f772c6d2993e5c81310327122ecaff1b0",
+      "objects": 36,
+      "earliest_epoch_utc": "2026-10-07T21:48:20.697696+00:00",
+      "latest_epoch_utc": "2026-10-21T08:16:13.275840+00:00",
+      "catalog_numbers_over_99999": 8
+    }
+  },
+  "scope": "tracked group objects; operational membership, beam/service status and gateways unverified",
+  "usage_policy": "https://celestrak.org/usage-policy.php",
+  "source_note": "Third-party CelesTrak cache; verify age and identity"
+}

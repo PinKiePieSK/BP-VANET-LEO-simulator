@@ -1,0 +1,31 @@
+<!doctype html>
+<!--
+Technická stránka načítava aktuálnu podobu skupín a štýlov pre kontrolu všetkých scenárových
+vrstiev.
+-->
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Simulátor · technické parametre</title>
+  <link rel="stylesheet" href="/technical-parameters.css?v=20261117-control4">
+</head>
+<!--
+Táto stránka číta živý scenár cez bridge otvoreného editora. Pri zmene parametra odosiela len
+povolený patch späť, aby rozpracovaný scenár zostal v jednom stave.
+-->
+<body>
+<header><div><h1>Technické parametre</h1></div><a id="backLink" href="/simulator.html">← Simulátor</a></header>
+<main>
+  <section class="intro">
+    <div><strong id="scenarioTitle">—</strong><p id="pageStatus" role="status">Načítavam…</p></div>
+    <div class="controls"><button id="liveButton" type="button">Aktuálny scenár</button><button id="exportInputs" type="button">Stiahnuť vstupy JSON</button><label>Uložený scenár<select id="savedScenarios"><option value="">— vybrať —</option></select></label></div>
+  </section>
+  <div id="sections" class="sections"></div>
+</main>
+<!--
+Verzované zdroje zabránia starej rozloženej stránke v cache po obnovení prehliadača.
+-->
+<script src="/technical-parameters.js?v=20261118-compact1"></script>
+</body>
+</html>

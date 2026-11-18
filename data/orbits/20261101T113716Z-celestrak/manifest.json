@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "fetched_utc": "2026-11-01T11:37:16.881207+00:00",
+  "provider": "celestrak",
+  "upstream": "CelesTrak GP",
+  "format": "CelesTrak GP OMM-keyword JSON, raw bytes gzip with mtime 0",
+  "time_system": "UTC; CelesTrak omits redundant TIME_SYSTEM in JSON/CSV GP",
+  "groups": {
+    "starlink": {
+      "source_url": "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=JSON",
+      "file": "starlink.json.gz",
+      "mirror_cache_status": null,
+      "retrieved_utc": "2026-11-01T11:37:19.652419+00:00",
+      "raw_sha256": "0ced5feb3b497750f007a5d9b26bafc2ea0e99a8b3b01c0ae2ec7a772161d78a",
+      "gzip_sha256": "54319eb8bed54d1a982864253a9addd16e89170c8eaad73fbe4b940de96d3276",
+      "objects": 11156,
+      "earliest_epoch_utc": "2026-10-28T05:14:11.940000+00:00",
+      "latest_epoch_utc": "2026-11-01T07:19:34.813920+00:00",
+      "epoch_age_hours_min": 4.295,
+      "epoch_age_hours_max": 102.385,
+      "epoch_within_48h": 11140,
+      "catalog_numbers_over_99999": 527
+    },
+    "iridium-NEXT": {
+      "source_url": "https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium-NEXT&FORMAT=JSON",
+      "file": "iridium-NEXT.json.gz",
+      "mirror_cache_status": null,
+      "retrieved_utc": "2026-11-01T11:37:20.549007+00:00",
+      "raw_sha256": "2cda6a9fe9ea80d3b58ffb676b294e5eddfde85ce6b24ce084b3d7837369af67",
+      "gzip_sha256": "a0ff0d104ae19b34b004c654e60f6f9522518b0714b1622dc20e957b9c8372b5",
+      "objects": 80,
+      "earliest_epoch_utc": "2026-10-31T10:12:50.786784+00:00",
+      "latest_epoch_utc": "2026-11-01T05:23:38.885568+00:00",
+      "epoch_age_hours_min": 6.227,
+      "epoch_age_hours_max": 25.407,
+      "epoch_within_48h": 80,
+      "catalog_numbers_over_99999": 0
+    },
+    "globalstar": {
+      "source_url": "https://celestrak.org/NORAD/elements/gp.php?GROUP=globalstar&FORMAT=JSON",
+      "file": "globalstar.json.gz",
+      "mirror_cache_status": null,
+      "retrieved_utc": "2026-11-01T11:37:21.361802+00:00",
+      "raw_sha256": "67960e0f7e36149ed78823bb61ed929abeb345e7c5243ef383d2574638b73ca3",
+      "gzip_sha256": "e4fc6585823a361421686e2982dd3c392db33971bf8c02748c580351bb86defa",
+      "objects": 36,
+      "earliest_epoch_utc": "2026-10-26T13:33:07.785216+00:00",
+      "latest_epoch_utc": "2026-11-01T05:11:57.944832+00:00",
+      "epoch_age_hours_min": 6.422,
+      "epoch_age_hours_max": 142.069,
+      "epoch_within_48h": 33,
+      "catalog_numbers_over_99999": 8
+    }
+  },
+  "scope": "tracked group objects; operational membership, beam/service status and gateways unverified",
+  "usage_policy": "https://celestrak.org/usage-policy.php",
+  "source_note": "Direct CelesTrak GP download"
+}

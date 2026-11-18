@@ -1,0 +1,340 @@
+{
+  "flows": [
+    {
+      "execution": "not_implemented",
+      "id": "cam_broadcast",
+      "message_type": "CAM",
+      "source": "car0",
+      "target": "broadcast",
+      "technology": "its_g5"
+    }
+  ],
+  "georeference": {
+    "anchor_x_m": 800,
+    "anchor_y_m": 675,
+    "frame": "WGS84_ENU",
+    "height_m": 0,
+    "latitude_deg": 48.1486,
+    "longitude_deg": 17.1077
+  },
+  "map_source": "manual",
+  "network_execution": "schema_only",
+  "roads": {
+    "nodes": [
+      {
+        "id": "n0",
+        "x_m": 100,
+        "y_m": 1422
+      },
+      {
+        "id": "n1",
+        "x_m": 500,
+        "y_m": 1422
+      },
+      {
+        "id": "n2",
+        "x_m": 900,
+        "y_m": 1422
+      },
+      {
+        "id": "n3",
+        "x_m": 1300,
+        "y_m": 1422
+      },
+      {
+        "id": "n4",
+        "x_m": 1800,
+        "y_m": 1422
+      },
+      {
+        "id": "n5",
+        "x_m": 1300,
+        "y_m": 950
+      },
+      {
+        "id": "n6",
+        "x_m": 1300,
+        "y_m": 500
+      },
+      {
+        "id": "n7",
+        "x_m": 1800,
+        "y_m": 500
+      }
+    ],
+    "segments": [
+      {
+        "from": "n0",
+        "id": "west",
+        "lanes_each_direction": 1,
+        "shape": [
+          [
+            100,
+            1422
+          ],
+          [
+            500,
+            1422
+          ]
+        ],
+        "speed_limit_mps": 13.89,
+        "to": "n1"
+      },
+      {
+        "from": "n1",
+        "id": "approach",
+        "lanes_each_direction": 1,
+        "shape": [
+          [
+            500,
+            1422
+          ],
+          [
+            900,
+            1422
+          ]
+        ],
+        "speed_limit_mps": 13.89,
+        "to": "n2"
+      },
+      {
+        "from": "n2",
+        "id": "middle",
+        "lanes_each_direction": 1,
+        "shape": [
+          [
+            900,
+            1422
+          ],
+          [
+            1300,
+            1422
+          ]
+        ],
+        "speed_limit_mps": 13.89,
+        "to": "n3"
+      },
+      {
+        "from": "n3",
+        "id": "east",
+        "lanes_each_direction": 1,
+        "shape": [
+          [
+            1300,
+            1422
+          ],
+          [
+            1800,
+            1422
+          ]
+        ],
+        "speed_limit_mps": 13.89,
+        "to": "n4"
+      },
+      {
+        "from": "n3",
+        "id": "branch",
+        "lanes_each_direction": 1,
+        "shape": [
+          [
+            1300,
+            1422
+          ],
+          [
+            1300,
+            950
+          ]
+        ],
+        "speed_limit_mps": 13.89,
+        "to": "n5"
+      },
+      {
+        "from": "n5",
+        "id": "downhill",
+        "lanes_each_direction": 1,
+        "shape": [
+          [
+            1300,
+            950
+          ],
+          [
+            1300,
+            500
+          ]
+        ],
+        "speed_limit_mps": 13.89,
+        "to": "n6"
+      },
+      {
+        "from": "n6",
+        "id": "lower",
+        "lanes_each_direction": 1,
+        "shape": [
+          [
+            1300,
+            500
+          ],
+          [
+            1800,
+            500
+          ]
+        ],
+        "speed_limit_mps": 13.89,
+        "to": "n7"
+      }
+    ]
+  },
+  "rsus": [
+    {
+      "id": "rsu0",
+      "technologies": [
+        "its_g5",
+        "ip_backhaul"
+      ],
+      "x_m": 894.7,
+      "y_m": 1422
+    },
+    {
+      "id": "rsu1",
+      "technologies": [
+        "its_g5",
+        "ip_backhaul"
+      ],
+      "x_m": 1500,
+      "y_m": 520
+    },
+    {
+      "id": "rsu2",
+      "technologies": [
+        "its_g5",
+        "ip_backhaul"
+      ],
+      "x_m": 320,
+      "y_m": 1422
+    }
+  ],
+  "schema_version": 2,
+  "simulation": {
+    "duration_s": 6,
+    "seed": 314161,
+    "step_s": 0.1,
+    "utc_origin": "2026-10-22T12:45:00Z"
+  },
+  "vehicles": [
+    {
+      "depart_pos_m": 100,
+      "depart_s": 0,
+      "depart_speed_mps": 10,
+      "id": "car0",
+      "route": [
+        {
+          "direction": "forward",
+          "segment": "approach"
+        },
+        {
+          "direction": "forward",
+          "segment": "middle"
+        },
+        {
+          "direction": "forward",
+          "segment": "east"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 150,
+      "depart_s": 0,
+      "depart_speed_mps": 8,
+      "id": "car1",
+      "route": [
+        {
+          "direction": "forward",
+          "segment": "west"
+        },
+        {
+          "direction": "forward",
+          "segment": "approach"
+        },
+        {
+          "direction": "forward",
+          "segment": "middle"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 100,
+      "depart_s": 0,
+      "depart_speed_mps": 8,
+      "id": "car2",
+      "route": [
+        {
+          "direction": "reverse",
+          "segment": "east"
+        },
+        {
+          "direction": "reverse",
+          "segment": "middle"
+        },
+        {
+          "direction": "reverse",
+          "segment": "approach"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 150,
+      "depart_s": 0,
+      "depart_speed_mps": 8,
+      "id": "car3",
+      "route": [
+        {
+          "direction": "reverse",
+          "segment": "lower"
+        },
+        {
+          "direction": "reverse",
+          "segment": "downhill"
+        },
+        {
+          "direction": "reverse",
+          "segment": "branch"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    },
+    {
+      "depart_pos_m": 100,
+      "depart_s": 0,
+      "depart_speed_mps": 8,
+      "id": "car4",
+      "route": [
+        {
+          "direction": "reverse",
+          "segment": "downhill"
+        },
+        {
+          "direction": "reverse",
+          "segment": "branch"
+        },
+        {
+          "direction": "reverse",
+          "segment": "middle"
+        }
+      ],
+      "technologies": [
+        "its_g5"
+      ]
+    }
+  ]
+}

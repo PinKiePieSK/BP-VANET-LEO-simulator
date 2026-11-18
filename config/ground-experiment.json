@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "base_world": "data/inputs/editable-road-v2/packet-subset.json",
+  "source_id": "car0",
+  "rsu_id": "rsu0",
+  "cam_sender_policy": "all_its_g5_vehicles",
+  "cam_receiver_policy": "all_other_radio_nodes",
+  "sample_step_s": 0.1,
+  "sample_count": 100,
+  "seed": 314159,
+  "run": 1,
+  "tx_power_dbm": 20,
+  "noise_figure_db": 7,
+  "phase_us": 1000,
+  "dcc_policy": {"low_cbr": 0.004, "high_cbr": 0.012, "mid_interval_ms": 250, "high_interval_ms": 500},
+  "cases": [
+    {"id": "sparse_los", "demand": "data/inputs/v5-ground/synthetic-03-trips.json", "first_sample_s": 10, "radio_mode": "urban_los", "dcc": false},
+    {"id": "medium_los", "demand": "data/inputs/v5-ground/synthetic-12-trips.json", "first_sample_s": 10, "radio_mode": "urban_los", "dcc": false},
+    {"id": "dense_los", "demand": "data/inputs/v5-ground/synthetic-24-trips.json", "first_sample_s": 10, "radio_mode": "urban_los", "dcc": false},
+    {"id": "dense_los_dcc", "demand": "data/inputs/v5-ground/synthetic-24-trips.json", "first_sample_s": 10, "radio_mode": "urban_los", "dcc": true},
+    {"id": "dense_nlos", "demand": "data/inputs/v5-ground/synthetic-24-trips.json", "first_sample_s": 10, "radio_mode": "urban_nlos", "dcc": false},
+    {"id": "dense_los_late", "demand": "data/inputs/v5-ground/synthetic-24-trips.json", "first_sample_s": 13, "radio_mode": "urban_los", "dcc": false},
+    {"id": "dense_collision", "demand": "data/inputs/v5-ground/synthetic-24-trips.json", "first_sample_s": 10, "radio_mode": "urban_los", "dcc": false, "phase_us": 0},
+    {"id": "dense_building", "demand": "data/inputs/v5-ground/synthetic-24-trips.json", "first_sample_s": 10, "radio_mode": "urban_building", "dcc": false, "buildings": "data/inputs/v5-ground/synthetic-building-box.json", "shadowing": false},
+    {"id": "dense_building_shadow", "demand": "data/inputs/v5-ground/synthetic-24-trips.json", "first_sample_s": 10, "radio_mode": "urban_building", "dcc": false, "buildings": "data/inputs/v5-ground/synthetic-building-box.json", "shadowing": true}
+  ]
+}

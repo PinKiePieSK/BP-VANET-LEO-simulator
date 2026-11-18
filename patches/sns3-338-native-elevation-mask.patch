@@ -1,0 +1,113 @@
+diff --git a/model/satellite-channel.cc b/model/satellite-channel.cc
+index e560e2e..a1fbce0 100644
+--- a/model/satellite-channel.cc
++++ b/model/satellite-channel.cc
+@@ -19,6 +19,7 @@
+  */
+ 
+ #include <algorithm>
++#include <cmath>
+ 
+ #include <ns3/object.h>
+ #include <ns3/simulator.h>
+@@ -30,6 +31,7 @@
+ #include <ns3/mobility-model.h>
+ #include <ns3/enum.h>
+ #include <ns3/boolean.h>
++#include <ns3/double.h>
+ #include <ns3/singleton.h>
+ 
+ #include "satellite-phy-rx.h"
+@@ -42,6 +44,7 @@
+ #include "satellite-fading-output-trace-container.h"
+ #include "satellite-fading-external-input-trace-container.h"
+ #include "satellite-id-mapper.h"
++#include "satellite-mobility-model.h"
+ #include "satellite-utils.h"
+ 
+ 
+@@ -68,6 +71,7 @@ SatChannel::SatChannel ()
+    * fading, nor antenna patterns.
+    */
+   m_enableRxPowerOutputTrace (false),
++  m_minElevationAngleDeg (-90.0),
+   m_enableFadingOutputTrace (false),
+   m_enableExternalFadingInputTrace (false)
+ {
+@@ -99,6 +103,15 @@ SatChannel::GetTypeId (void)
+                     BooleanValue (false),
+                     MakeBooleanAccessor (&SatChannel::m_enableRxPowerOutputTrace),
+                     MakeBooleanChecker ())
++    .AddAttribute ("MinElevationAngleDeg",
++                   "Native channel cutoff at the ground endpoint; -90 disables it.",
++                   DoubleValue (-90.0),
++                   MakeDoubleAccessor (&SatChannel::m_minElevationAngleDeg),
++                   MakeDoubleChecker<double> (-90.0, 90.0))
++    .AddTraceSource ("EarthOccultationDrop",
++                     "Signal refused by the native satellite channel below the elevation mask.",
++                     MakeTraceSourceAccessor (&SatChannel::m_earthOccultationDropTrace),
++                     "ns3::TracedCallback::Double")
+     .AddAttribute ( "EnableFadingOutputTrace",
+                     "Enable fading output trace.",
+                     BooleanValue (false),
+@@ -273,6 +286,43 @@ SatChannel::ScheduleRx (Ptr<SatSignalParameters> txParams, Ptr<SatPhyRx> receive
+   Ptr<MobilityModel> senderMobility = txParams->m_phyTx->GetMobility ();
+   Ptr<MobilityModel> receiverMobility = receiver->GetMobility ();
+ 
++  if (m_minElevationAngleDeg > -90.0)
++    {
++      const bool groundSender = m_channelType == SatEnums::RETURN_USER_CH ||
++                                m_channelType == SatEnums::FORWARD_FEEDER_CH;
++      const bool groundReceiver = m_channelType == SatEnums::FORWARD_USER_CH ||
++                                  m_channelType == SatEnums::RETURN_FEEDER_CH;
++      if (groundSender || groundReceiver)
++        {
++          Ptr<SatMobilityModel> ground = DynamicCast<SatMobilityModel> (
++              groundSender ? senderMobility : receiverMobility);
++          Ptr<SatMobilityModel> satellite = DynamicCast<SatMobilityModel> (
++              groundSender ? receiverMobility : senderMobility);
++          NS_ABORT_MSG_IF (!ground || !satellite,
++                           "Satellite elevation mask requires geodetic mobility models");
++          const GeoCoordinate site = ground->GetGeoPosition ();
++          const Vector siteEcef = ground->GetPosition ();
++          const Vector satEcef = satellite->GetPosition ();
++          const double lat = SatUtils::DegreesToRadians (site.GetLatitude ());
++          const double lon = SatUtils::DegreesToRadians (site.GetLongitude ());
++          const double dx = satEcef.x - siteEcef.x;
++          const double dy = satEcef.y - siteEcef.y;
++          const double dz = satEcef.z - siteEcef.z;
++          const double distance = std::sqrt (dx * dx + dy * dy + dz * dz);
++          NS_ABORT_MSG_IF (!(distance > 0.0), "Satellite elevation distance invalid");
++          const double up = (dx * std::cos (lat) * std::cos (lon) +
++                             dy * std::cos (lat) * std::sin (lon) +
++                             dz * std::sin (lat)) / distance;
++          const double elevation = SatUtils::RadiansToDegrees (
++              std::asin (std::max (-1.0, std::min (1.0, up))));
++          if (elevation < m_minElevationAngleDeg)
++            {
++              m_earthOccultationDropTrace (elevation);
++              return;
++            }
++        }
++    }
++
+   NS_LOG_INFO ("copying signal parameters " << txParams);
+   Ptr<SatSignalParameters> rxParams = txParams->Copy ();
+ 
+diff --git a/model/satellite-channel.h b/model/satellite-channel.h
+index 7f61a38..d5946fe 100644
+--- a/model/satellite-channel.h
++++ b/model/satellite-channel.h
+@@ -246,6 +246,12 @@ private:
+    */
+   bool m_enableRxPowerOutputTrace;
+ 
++  /** Minimum geodetic elevation at a UT or GW for a native PHY reception. */
++  double m_minElevationAngleDeg;
++
++  /** Emitted when a native satellite channel refuses a below-mask signal. */
++  TracedCallback<double> m_earthOccultationDropTrace;
++
+   /**
+    * \brief Defines whether fading output tracing is in use or not
+    */

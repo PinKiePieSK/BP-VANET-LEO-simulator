@@ -1,0 +1,8 @@
+# Install after requirements-orbits.txt, in CPython 3.12 on Ubuntu x86_64.
+# Separate file avoids changing the pinned runtime of the orbit preview.
+astropy==7.1.1
+astropy-iers-data==0.2026.10.19.0.52.1
+numpy==1.26.4
+packaging==26.3
+pyerfa==2.0.1.5
+PyYAML==6.0.3
