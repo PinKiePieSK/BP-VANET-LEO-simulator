@@ -46,10 +46,24 @@ def install() -> Path:
         "StartupNotify=true\n"
         "Categories=Education;Science;\n")
     target.chmod(0o755)
+    updater = target_dir / "BP-Simulator-Update.desktop"
+    updater.write_text(
+        "[Desktop Entry]\n"
+        "Version=1.0\n"
+        "Type=Application\n"
+        "Name=BP Simulátor – aktualizovať\n"
+        "Comment=Stiahnuť schválené zmeny a zachovať staršie behy\n"
+        f"Exec=bash {quoted(PACKAGE / 'update.sh')}\n"
+        f"Path={PACKAGE}\n"
+        "Icon=bp-simulator\n"
+        "Terminal=true\n"
+        "Categories=Education;Science;\n")
+    updater.chmod(0o755)
     gio = shutil.which("gio")
     if gio:
-        subprocess.run([gio, "set", str(target), "metadata::trusted", "true"],
-                       check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        for entry in (target, updater):
+            subprocess.run([gio, "set", str(entry), "metadata::trusted", "true"],
+                           check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return target
 
 

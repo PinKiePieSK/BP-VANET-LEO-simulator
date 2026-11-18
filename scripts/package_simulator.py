@@ -19,7 +19,9 @@ NAME = "BP-Simulator"
 PINNED_SCENARIOS = {"realna-d1-pozemna", "realna-d1-satelit",
                     "navrh-koridor-pozemna", "navrh-koridor-satelit"}
 sys.path.insert(0, str(ROOT / "tools"))
+sys.path.insert(0, str(ROOT / "scripts"))
 from simulator_inventory import VIEWER_FILES
+from portable_update import BRANCH, REPOSITORY, REVISION, is_runtime_source
 
 
 def active_tool_files() -> set[str]:
@@ -171,7 +173,9 @@ def desktop() -> Path:
     return Path.home() / "Desktop"
 
 
-def create(destination: Path) -> dict:
+def create(destination: Path, source_revision: str | None = None) -> dict:
+    if source_revision is not None and not REVISION.fullmatch(source_revision):
+        raise ValueError("source revision must be a published 40-character Git commit")
     destination = destination.resolve()
     archive = destination.with_suffix(".zip")
     if destination.exists() or archive.exists():
@@ -195,6 +199,7 @@ def create(destination: Path) -> dict:
     for source, name in (("portable_setup.sh", "setup.sh"), ("portable_run.sh", "run.sh"),
                          ("portable_import.sh", "import.sh"), ("portable_verify.py", "verify.py"),
                          ("portable_launch.py", "launch.py"),
+                         ("portable_update.py", "update.py"), ("portable_update.sh", "update.sh"),
                          ("portable_install_shortcut.py", "install_shortcut.py"),
                          ("bp-simulator.svg", "bp-simulator.svg")):
         copy(ROOT / "scripts" / source, destination / name)
@@ -203,6 +208,16 @@ def create(destination: Path) -> dict:
     for link in (destination / "engine/build/openssl-dev-local").rglob("*"):
         if link.is_symlink() and not link.exists():
             link.unlink()
+    managed = {}
+    for path in sorted((destination / "engine").rglob("*")):
+        relative = str(path.relative_to(destination / "engine"))
+        if path.is_file() and not path.is_symlink() and is_runtime_source(relative):
+            managed[relative] = digest(path)
+    update_base = {"schema_version": 1, "repository": REPOSITORY, "branch": BRANCH,
+                   "revision": source_revision, "active_runtime": "runtime",
+                   "versions": {source_revision: "runtime"} if source_revision else {},
+                   "runs": {}, "managed": managed}
+    (destination / "UPDATE-BASE.json").write_text(json.dumps(update_base, sort_keys=True, indent=2) + "\n")
     payload = {"schema_version": 1, "runtime": "ns-3.38/SNS-3 3.38",
                "support": "Ubuntu 24.04 x86_64, CPython 3.12", "contents": inventory(destination)}
     (destination / "PACKAGE-MANIFEST.json").write_text(json.dumps(payload, sort_keys=True, indent=2) + "\n")
@@ -231,5 +246,6 @@ def create(destination: Path) -> dict:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--destination", type=Path, default=desktop() / NAME)
+    parser.add_argument("--source-revision", help="published Git commit bundled in this release")
     args = parser.parse_args()
-    print(json.dumps(create(args.destination), sort_keys=True))
+    print(json.dumps(create(args.destination, args.source_revision), sort_keys=True))

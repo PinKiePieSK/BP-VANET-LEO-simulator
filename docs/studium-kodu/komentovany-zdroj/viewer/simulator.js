@@ -705,7 +705,10 @@ for(const b of document.querySelectorAll('[data-tool]'))b.onclick=()=>updateTool
 // Prehrávač posúva spoločný čas podľa skutočne uplynutého času prehliadača. Rovnaký čas ovláda
 // polohy aj počet odhalených paketov; na konci sa zastaví, aby zostal celý zoznam na kontrolu.
 let previous=performance.now(),lastPaint=0,lastOrbitPaint=0;function frame(now){if(S.playing&&S.replay){const span=S.replay.max-S.replay.min;if(span>0)S.time=Math.min(S.replay.max,S.time+Math.max(0,now-previous)*1000);if(S.time>=S.replay.max){S.playing=false;$('play').textContent='▶';}if(now-lastOrbitPaint>=33){window.simulatorSyncReplayOrbit?.();lastOrbitPaint=now;}if(now-lastPaint>=100||!S.playing){$('time').value=Math.round(1000*(S.time-S.replay.min)/span);showTime();lastPaint=now;}}previous=now;requestAnimationFrame(frame);}requestAnimationFrame(frame);
-(async()=>{try{window.simulatorDefaultDraft=await api('/api/simulator/editor/new');await loadOrbitSnapshots();await loadSaved();useSource(window.simulatorDefaultDraft,true,true);}catch(e){error(e);}})();
+// Pri otvorení historického behu spúšťač vloží jeho ID do adresy. Editor po inicializácii zavolá
+// bežné serverové overenie a načíta replay automaticky; samotný parameter adresy neobchádza
+// verifier.
+(async()=>{try{window.simulatorDefaultDraft=await api('/api/simulator/editor/new');await loadOrbitSnapshots();await loadSaved();useSource(window.simulatorDefaultDraft,true,true);const previousRun=new URLSearchParams(window.location.search).get('run');if(previousRun){if(!/^[A-Za-z0-9_-]{1,80}$/.test(previousRun))throw Error('Neplatné ID behu.');$('runId').value=previousRun;await poll(previousRun);}}catch(e){error(e);}})();
 window.simulatorEditor={state:S,render,carPosition,replayCar,groundPosition,activePacketLinks,linkVisualKind,selectPacketLink,nearestRoad,addCar,addRsu,addRoadPoint,finishRoad,status,markDirty,rebuildObjectPicker,refreshOrbits,syncSatelliteEndpoints,renderDurationControls};window.simulatorEditorSwitchMapMode=switchMapMode;window.simulatorEditorClearRealSite=clearRealSite;
 
 'use strict';

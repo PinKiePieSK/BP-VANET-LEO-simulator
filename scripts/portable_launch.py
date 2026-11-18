@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import fcntl
 import hashlib
+import argparse
+import json
 import os
 import re
 import select
@@ -15,6 +17,7 @@ import sys
 import tempfile
 import time
 import urllib.request
+from urllib.parse import urlencode
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -81,8 +84,24 @@ def browser_command(url: str, profile: Path) -> list[str]:
     raise RuntimeError("Chýba Firefox alebo Chromium. Nainštaluj prehliadač a spusti ikonu znova.")
 
 
-def ready_runtime(workspace: Path) -> Path:
+def ready_runtime(workspace: Path, run_id: str | None = None) -> Path:
+    if run_id and not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", run_id):
+        raise RuntimeError("Neplatné ID behu.")
     runtime = workspace / "runtime"
+    state_file = workspace / "UPDATE-STATE.json"
+    if state_file.is_file():
+        state = json.loads(state_file.read_text())
+        if run_id:
+            matches = {(workspace / relative).resolve() for relative in state.get("versions", {}).values()
+                       if isinstance(relative, str) and
+                       (workspace / relative / "results/simulations" / run_id).is_dir()}
+            if len(matches) != 1:
+                raise RuntimeError(f"Beh {run_id} neexistuje alebo má rovnaké ID vo viacerých verziách.")
+            runtime = matches.pop()
+        else:
+            runtime = (workspace / state.get("active_runtime", "runtime")).resolve()
+        if not runtime.is_relative_to(workspace.resolve()):
+            raise RuntimeError("Stav aktualizácií obsahuje neplatnú cestu k runtime.")
     if not (workspace / "READY").is_file() or not (runtime / ".venv/bin/python").is_file():
         raise RuntimeError("Simulátor ešte nie je pripravený. V rozbalenom BP-Simulator najprv spusti setup.sh.")
     if not (runtime / "tools/simulator_server.py").is_file():
@@ -94,14 +113,14 @@ def ready_runtime(workspace: Path) -> Path:
     return runtime
 
 
-def start_server(runtime: Path, log) -> tuple[subprocess.Popen, str]:
+def start_server(runtime: Path, workspace: Path, log) -> tuple[subprocess.Popen, str]:
     with socket.socket() as probe:
         probe.settimeout(.2)
         preferred_port = 0 if probe.connect_ex(("127.0.0.1", 8766)) == 0 else 8766
     child = subprocess.Popen([str(runtime / ".venv/bin/python"), "tools/simulator_server.py",
                               "--port", str(preferred_port)], cwd=runtime, stdout=subprocess.PIPE,
                              stderr=log, text=True, bufsize=1, start_new_session=True,
-                             env={**os.environ, "BP_SIM_WORKSPACE": str(runtime.parent)})
+                             env={**os.environ, "BP_SIM_WORKSPACE": str(workspace)})
     assert child.stdout is not None
     readable, _, _ = select.select([child.stdout], [], [], 20)
     if not readable:
@@ -127,6 +146,9 @@ def start_server(runtime: Path, log) -> tuple[subprocess.Popen, str]:
 
 
 def launch() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--run", help="otvoriť verziu, v ktorej vznikol uložený beh")
+    args = parser.parse_args()
     workspace = Path(os.environ.get("BP_SIM_WORKSPACE", desktop() / "BP-Simulator-Workspace")).expanduser().resolve()
     workspace.mkdir(parents=True, exist_ok=True)
     logs = workspace / "logs"
@@ -137,14 +159,16 @@ def launch() -> int:
         except BlockingIOError:
             tell("Simulátor už beží v samostatnom okne.")
             return 0
-        runtime = ready_runtime(workspace)
+        runtime = ready_runtime(workspace, args.run)
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         log_path = logs / f"launcher-{stamp}-{os.getpid()}.log"
         server = browser = None
         profile = None
         try:
             with log_path.open("w", buffering=1) as log:
-                server, url = start_server(runtime, log)
+                server, url = start_server(runtime, workspace, log)
+                if args.run:
+                    url += "?" + urlencode({"run": args.run})
                 print(f"Server: {url}", file=log)
                 profile_root = workspace / "browser-profiles"
                 profile_root.mkdir(exist_ok=True)

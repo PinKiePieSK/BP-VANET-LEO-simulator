@@ -9,11 +9,11 @@
     ]
   },
   "spustac/install_shortcut.py": {
-    "overview": "Vytvorí desktopovú ikonu smerujúcu na prenosný spúšťač. Nemení simulačný model ani parametre pokusu.",
+    "overview": "Vytvorí ikonu simulátora a samostatnú ikonu pre ručné aktualizovanie zo schválených commitov. Nemení simulačný model ani parametre pokusu.",
     "sections": []
   },
   "spustac/launch.py": {
-    "overview": "Spúšťa lokálny server a samostatné okno prehliadača. Kontroluje identitu balíka, aby pracovný runtime nebol omylom použitý s inou verziou zdrojov, a po zavretí okna server ukončí.",
+    "overview": "Spúšťa lokálny server a samostatné okno prehliadača. Kontroluje identitu balíka a podľa ID starého behu vyberá jeho historický runtime. Po zavretí okna server ukončí.",
     "sections": [
       {
         "before": "browser_env =",
@@ -21,7 +21,7 @@
       },
       {
         "before": "def ready_runtime(",
-        "explanation": "Overí, že pracovný runtime existuje a patrí k tej istej verzii prenosného balíka. Tým zabraňuje použitiu starého buildu po výmene ZIPu."
+        "explanation": "Overí identitu základného balíka a podľa mapy verzií vyberie kód, s ktorým vznikol požadovaný beh. Historické replay sa tým neoveruje proti novým zdrojom."
       },
       {
         "before": "def start_server(",
@@ -34,16 +34,16 @@
     ]
   },
   "spustac/run.sh": {
-    "overview": "Príkazový vstup pre preflight, beh a nezávislé overenie. Všetky tri príkazy deleguje na jeden aktuálny Python runner v pracovnom runtime.",
+    "overview": "Príkazový vstup pre preflight a nové behy v aktívnej verzii. Pri verify a replay vyberie runtime uložený pre príslušné ID behu.",
     "sections": [
       {
         "before": "case \"$command\" in",
-        "explanation": "Príkazy preflight, run, verify a server sa všetky presmerujú do pripraveného pracovného runtime. Predtým sa porovná PACKAGE-ID; balík sa nesmie potichu používať s runtime zostaveným z iného zdroja."
+        "explanation": "Preflight, nový beh a server používajú aktívny runtime. Pred novým behom sa odmietne ID použité v staršej verzii. Verify používa historický runtime podľa ID; PACKAGE-ID bráni zámene iného základného ZIPu."
       }
     ]
   },
   "spustac/setup.sh": {
-    "overview": "Pripraví systémové závislosti, Python prostredie, Vanetza a ns-3.38/SNS-3. Ukladá zostavený runtime mimo prenosného zdrojového priečinka a vykonáva krátku kontrolu spustiteľnosti.",
+    "overview": "Pripraví systémové závislosti, Python prostredie, Vanetza a ns-3.38/SNS-3. Pri novom balíku uloží nový runtime vedľa pôvodného, aby staršie behy zostali overiteľné.",
     "sections": [
       {
         "before": "for name in \"$osm_name\"",
@@ -51,7 +51,11 @@
       },
       {
         "before": "runtime=\"$workspace/runtime\"",
-        "explanation": "Pracovný runtime sa pripravuje mimo čistého balíka. Tu patria skompilované knižnice, cache a výsledky; ZIP zostáva prenosný zdroj."
+        "explanation": "Pracovný runtime sa pripravuje mimo čistého balíka. Pri zmene základného ZIPu vznikne nová verzia vedľa starej; pôvodné zdroje a výsledky sa neprepíšu."
+      },
+      {
+        "before": "python3 \"$package/update.py\" adopt-package",
+        "explanation": "Až po preflighte a krátkom behu sa zapíše nová mapa verzií a identita balíka. Staré výsledky sa pri verifikácii vyberajú podľa runtime, v ktorom vznikli."
       }
     ]
   },
@@ -63,6 +67,31 @@
         "explanation": "Tento overovač kontroluje súbory balíka podľa manifestu. Neoveruje konkrétne doručenie CAM/DENM; na to slúži run.sh verify nad výsledkom."
       }
     ]
+  },
+  "spustac/update.py": {
+    "overview": "Stiahne schválený Git commit a vytvorí novú verziu pracovného runtime iba zo zmenených zdrojov. Pôvodný runtime s výsledkami ponechá pre verifikáciu starých behov.",
+    "sections": [
+      {
+        "before": "def changed_paths(",
+        "explanation": "Nová revízia musí nadväzovať na commit základného balíka. Porovnávajú sa len rozdiely medzi týmito commitmi, aby update nestiahol celý prenosný ZIP."
+      },
+      {
+        "before": "def copy_runtime(",
+        "explanation": "Nová verzia dostane vlastný upraviteľný zdroj a prázdny adresár výsledkov. Veľké pripnuté knižnice sa zdieľajú odkazmi; staré výsledky ostávajú pri pôvodnej verzii."
+      },
+      {
+        "before": "def update(",
+        "explanation": "Pred prepnutím overí nezmenené lokálne zdroje, bezpečnosť ciest a preflight kandidáta. Až úspešný kandidát sa zapíše do stavu; chybná aktualizácia nesmie zmeniť aktívny runtime."
+      },
+      {
+        "before": "def adopt_package(",
+        "explanation": "Po novej úplnej inštalácii zachová mapu starých runtime a ich behov, pričom novému balíku priradí jeho vydaný commit. Identita balíka sa prepne až po zapísaní stavu."
+      }
+    ]
+  },
+  "spustac/update.sh": {
+    "overview": "Terminálový vstup pre ručný update. Po skončení nechá okno otvorené, aby bolo vidieť úspech alebo chybu prihlásenia, sťahovania či preflightu.",
+    "sections": []
   },
   "src/cam-decoder.cc": {
     "overview": "Pomocný dekóder CAM cez pripnutú knižnicu Vanetza. Používa sa pri čítaní potvrdených polí z reálnych bajtov paketu; nezúčastňuje sa vysielania.",
@@ -1896,6 +1925,10 @@
       {
         "before": "async function openPacket(",
         "explanation": "Vyžiada serverový detail konkrétneho paketu. Bajty a dekódované polia pochádzajú zo stôp behu; UI ich nemá spätne domýšľať, keď chýbajú."
+      },
+      {
+        "before": "(async()=>{try{window.simulatorDefaultDraft=",
+        "explanation": "Pri otvorení historického behu spúšťač vloží jeho ID do adresy. Editor po inicializácii zavolá bežné serverové overenie a načíta replay automaticky; samotný parameter adresy neobchádza verifier."
       },
       {
         "before": "function frame(now){",

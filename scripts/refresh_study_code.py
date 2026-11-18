@@ -23,6 +23,7 @@ OUTPUT = BASE / "komentovany-zdroj"
 LAUNCHERS = {"portable_setup.sh": "setup.sh", "portable_run.sh": "run.sh",
              "portable_import.sh": "import.sh", "portable_verify.py": "verify.py",
              "portable_launch.py": "launch.py",
+             "portable_update.py": "update.py", "portable_update.sh": "update.sh",
              "portable_install_shortcut.py": "install_shortcut.py"}
 def active_sources() -> dict[str, Path]:
     """Use the same allowlists as the portable package, then add its launchers."""

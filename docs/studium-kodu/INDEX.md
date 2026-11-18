@@ -12,31 +12,45 @@ Pôvodný SHA-256: `49a23cef45d4…`
 
 ## [spustac/install_shortcut.py](komentovany-zdroj/spustac/install_shortcut.py)
 
-Vytvorí desktopovú ikonu smerujúcu na prenosný spúšťač. Nemení simulačný model ani parametre pokusu.
+Vytvorí ikonu simulátora a samostatnú ikonu pre ručné aktualizovanie zo schválených commitov. Nemení simulačný model ani parametre pokusu.
 
 Orientácia v súbore: `desktop()`, `quoted()`, `install()`.
 
-Pôvodný SHA-256: `f8e6b9917a09…`
+Pôvodný SHA-256: `f61a9547d399…`
 
 ## [spustac/launch.py](komentovany-zdroj/spustac/launch.py)
 
-Spúšťa lokálny server a samostatné okno prehliadača. Kontroluje identitu balíka, aby pracovný runtime nebol omylom použitý s inou verziou zdrojov, a po zavretí okna server ukončí.
+Spúšťa lokálny server a samostatné okno prehliadača. Kontroluje identitu balíka a podľa ID starého behu vyberá jeho historický runtime. Po zavretí okna server ukončí.
 
 Orientácia v súbore: `Stopped()`, `desktop()`, `tell()`, `on_signal()`, `stop()`, `browser_command()`, `ready_runtime()`, `start_server()`, `launch()`.
 
-Pôvodný SHA-256: `4d035f282082…`
+Pôvodný SHA-256: `d22f74dacfdc…`
 
 ## [spustac/run.sh](komentovany-zdroj/spustac/run.sh)
 
-Príkazový vstup pre preflight, beh a nezávislé overenie. Všetky tri príkazy deleguje na jeden aktuálny Python runner v pracovnom runtime.
+Príkazový vstup pre preflight a nové behy v aktívnej verzii. Pri verify a replay vyberie runtime uložený pre príslušné ID behu.
 
-Pôvodný SHA-256: `bacf37c21f0c…`
+Pôvodný SHA-256: `5cbdce68079e…`
 
 ## [spustac/setup.sh](komentovany-zdroj/spustac/setup.sh)
 
-Pripraví systémové závislosti, Python prostredie, Vanetza a ns-3.38/SNS-3. Ukladá zostavený runtime mimo prenosného zdrojového priečinka a vykonáva krátku kontrolu spustiteľnosti.
+Pripraví systémové závislosti, Python prostredie, Vanetza a ns-3.38/SNS-3. Pri novom balíku uloží nový runtime vedľa pôvodného, aby staršie behy zostali overiteľné.
 
-Pôvodný SHA-256: `f247f0d2a3dd…`
+Pôvodný SHA-256: `c50e69717347…`
+
+## [spustac/update.py](komentovany-zdroj/spustac/update.py)
+
+Stiahne schválený Git commit a vytvorí novú verziu pracovného runtime iba zo zmenených zdrojov. Pôvodný runtime s výsledkami ponechá pre verifikáciu starých behov.
+
+Orientácia v súbore: `is_runtime_source()`, `digest()`, `state_path()`, `read_state()`, `run_locations()`, `runtime_path()`, `command()`, `git()`, `ensure_authentication()`, `fetch()`, `changed_paths()`, `source_blob()`, `copy_runtime()`, `apply_blob()`, `write_atomic()`, `write_state()`, `adopt_package()`, `update()`, `main()`.
+
+Pôvodný SHA-256: `844dea2af56a…`
+
+## [spustac/update.sh](komentovany-zdroj/spustac/update.sh)
+
+Terminálový vstup pre ručný update. Po skončení nechá okno otvorené, aby bolo vidieť úspech alebo chybu prihlásenia, sťahovania či preflightu.
+
+Pôvodný SHA-256: `22b2527cf807…`
 
 ## [spustac/verify.py](komentovany-zdroj/spustac/verify.py)
 
@@ -492,7 +506,7 @@ Inšpektor objektov zjednocuje panely podľa účinku na jednotlivé simulácie 
 
 Orientácia v súbore: `svg`, `fmt`, `error`, `status`, `api`, `post`, `svgPoint`, `worldPoint`, `unitsPerPixel`, `sy`, `viewRatio`, `fullView`, `clampView`, `setView`, `zoom`, `fit`, `renderGrid`, `segment`, `shapeLength`, `pointAt`, `carPosition`, `nearestRoad`, `entityAt`, `replayCar`, `linkVisualKind`, `linkKey`, `activePacketLinks`, `selectPacketLink`, `groundPosition`, `renderGroundPacketLinks`, `markDirty`, `nextId`, `rebuildObjectPicker`, `focusSelected`, `removeRoadFromDraft`, `addRoadPoint`, `undoRoadPoint`, `redoRoadPoint`, `clearRoadDraft`, `finishRoad`, `end`, `addCar`, `addRsu`, `updateTool`, `satelliteCount`, `renderRoads`, `renderSumoInputs`, `render`, `ensureNodePolicy`, `renderPerNodeControls`, `renderAntennaControls`, `validateRoadPointEdit`, `updateRoadPoint`, `renderRoadControls`, `updateLaneRows`, `renderInspector`, `field`, `choose`, `checkbox`, `renderCatalog`, `orbitControls`, `loadOrbitSnapshots`, `syncOrbitSnapshotPicker`, `refreshOrbits`, `renderOrbit`, `loadMapConstellation`, `durationLimits`, `renderDenmControls`, `renderCarDenmControls`, `renderDurationControls`, `commitDurationInput`, `mapDraftSnapshot`, `restoreMapDraft`, `applyMapModeUI`, `syncHeightCase`, `clearMapFor`, `clearRealSite`, `commitAreaSize`, `newMap`, `switchMapMode`.
 
-Pôvodný SHA-256: `198ee90f00cc…`
+Pôvodný SHA-256: `8ed5b8eb3c18…`
 
 ## [viewer/technical-parameters-bridge.js](komentovany-zdroj/viewer/technical-parameters-bridge.js)
 

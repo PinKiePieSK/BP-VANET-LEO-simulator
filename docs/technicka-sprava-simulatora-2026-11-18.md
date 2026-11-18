@@ -10,7 +10,7 @@ Satelitná vetva je generický DVB model SNS-3 s orbitálnymi a terminálovými 
 
 ## 2. Inštalácia, spustenie a súbory scenára
 
-Na Ubuntu 24.04 x86_64 rozbaliť `BP-Simulator.zip`, v rozbalenom priečinku spustiť `bash setup.sh` a potom použiť vytvorenú ikonu. Inštalátor overí pripnutý slovenský OSM súbor, nainštaluje závislosti, zostaví Vanetza a ns-3/SNS-3, vykoná krátky pozemný beh. `BP-Simulator-Workspace/runtime` obsahuje spustiteľný runtime; `BP-Simulator-Workspace/runtime/results/simulations` výsledky. Zdrojový balík sa nemení pri ukladaní scenárov.
+Na Ubuntu 24.04 x86_64 rozbaliť `BP-Simulator.zip`, v rozbalenom priečinku spustiť `bash setup.sh` a potom použiť vytvorenú ikonu. Inštalátor overí pripnutý slovenský OSM súbor, nainštaluje závislosti, zostaví Vanetza a ns-3/SNS-3, vykoná krátky pozemný beh. `BP-Simulator-Workspace/runtime` obsahuje prvý spustiteľný runtime a jeho výsledky v `results/simulations`. Po aktualizácii vzniknú ďalšie runtime v `BP-Simulator-Workspace/.versions/<commit>`, každý s vlastnými výsledkami. Zdrojový balík sa nemení pri ukladaní scenárov.
 
 Pripravené scenáre: `realna-d1-pozemna`, `realna-d1-satelit`, `navrh-koridor-pozemna`, `navrh-koridor-satelit`. Dvojice používajú rovnakú dopravu a rozdielnu komunikačnú vetvu. Dopravný dopyt je syntetický. Pri porovnaní treba zaznamenať verziu balíka, vstupný JSON, seed, číslo ns-3 behu a ID výsledku.
 
@@ -22,7 +22,7 @@ bash run.sh run config/simulator-iridium.json moje-meranie-1
 bash run.sh verify moje-meranie-1
 ```
 
-Každý beh potrebuje nové ID. Po aktualizácii kódu treba zavrieť pôvodné okno a spustiť nové; otvorený lokálny server drží načítané Python moduly v pamäti. Ak verifikácia odmietne starý beh, najprv overiť jeho `run-manifest.json` a použiť zhodný zdroj. Staré výsledky sa neprepisujú.
+Každý beh potrebuje nové ID. Po schválenom commite treba zavrieť pôvodné okno a spustiť `bash update.sh` alebo ikonu **BP Simulátor – aktualizovať**. Aktualizátor stiahne rozdiel Git commitov, pripraví nový runtime a overí jeho preflight pred prepnutím. Pri prvom použití je nutné prihlásenie do GitHubu účtom s prístupom k súkromnému repozitáru. `bash run.sh verify ID_BEHU` vyberie kód verzie, v ktorej beh vznikol; `bash run.sh replay ID_BEHU` otvorí jeho prehratie. Staré výsledky sa neprepisujú. Pri zmenách pripnutých závislostí alebo inštalačných skriptov sa vydá nový celý ZIP.
 
 ## 3. Ovládanie editora
 

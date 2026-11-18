@@ -18,7 +18,7 @@ if [[ "$(uname -m)" != x86_64 ]] || ! grep -q '^ID=ubuntu$' /etc/os-release ||
   echo 'Supported clean install: Ubuntu 24.04 x86_64.' >&2
   exit 2
 fi
-required=(git build-essential cmake ninja-build pkg-config python3 python3-venv python3-dev wget ca-certificates
+required=(git gh build-essential cmake ninja-build pkg-config python3 python3-venv python3-dev wget ca-certificates
           sumo sumo-tools libxml2-dev libgsl-dev libsqlite3-dev libboost-all-dev libssl-dev zstd)
 if ! command -v osmium >/dev/null 2>&1 && [[ ! -x "$workspace/tools/osmium/usr/bin/osmium" ]]; then
   required+=(osmium-tool)
@@ -96,20 +96,58 @@ if ! [[ "$jobs" =~ ^[1-8]$ ]]; then
   exit 2
 fi
 
+exec 9>"$workspace/.launcher.lock"
+if ! flock -n 9; then
+  echo 'Close the simulator before installing a new package.' >&2
+  exit 2
+fi
+base_revision="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["revision"])' "$package/UPDATE-BASE.json")"
+if ! [[ "$base_revision" =~ ^[0-9a-f]{40}$ ]]; then
+  echo 'The package has no published source revision.' >&2
+  exit 2
+fi
 runtime="$workspace/runtime"
+migration=0
 if [[ -f "$workspace/READY" ]]; then
-  if [[ ! -f "$workspace/PACKAGE-ID" || "$(cat "$workspace/PACKAGE-ID")" != "$package_id" ]]; then
-    echo 'This workspace was prepared from a different simulator package. Choose a fresh BP_SIM_WORKSPACE.' >&2
+  if [[ ! -f "$workspace/PACKAGE-ID" ]]; then
+    echo 'The existing workspace has no package identity.' >&2
     exit 2
   fi
-  python3 "$package/install_shortcut.py"
-  echo "Already prepared: $runtime"
-  exit 0
+  if [[ "$(cat "$workspace/PACKAGE-ID")" == "$package_id" ]]; then
+    if [[ ! -f "$workspace/UPDATE-STATE.json" ]]; then
+      cp "$package/UPDATE-BASE.json" "$workspace/UPDATE-STATE.json"
+    fi
+    python3 "$package/install_shortcut.py"
+    echo "Already prepared: $(python3 "$package/update.py" runtime-path)"
+    exit 0
+  fi
+  migration=1
+  runtime="$workspace/.versions/$base_revision"
+  mkdir -p "$workspace/.versions"
 fi
 if [[ ! -d "$runtime" ]]; then
   cp -a "$package/engine" "$runtime"
 fi
 mkdir -p "$runtime/results/simulations" "$runtime/data/inputs/user"
+if [[ "$migration" == 1 ]]; then
+  previous="$(python3 - "$workspace" <<'PY'
+import json,pathlib,sys
+workspace=pathlib.Path(sys.argv[1]).resolve()
+state=workspace/'UPDATE-STATE.json'
+relative=json.loads(state.read_text()).get('active_runtime','runtime') if state.is_file() else 'runtime'
+old=(workspace/relative).resolve()
+if not old.is_relative_to(workspace) or not old.is_dir():
+    raise SystemExit('Invalid previous runtime')
+print(old)
+PY
+)"
+  for rel in config/scenarios data/inputs/user data/orbits; do
+    if [[ "$previous" != "$runtime" && -d "$previous/$rel" ]]; then
+      mkdir -p "$runtime/$rel"
+      cp -an "$previous/$rel/." "$runtime/$rel/"
+    fi
+  done
+fi
 cd "$runtime"
 
 if [[ ! -x .venv/bin/python ]]; then
@@ -158,8 +196,7 @@ if [[ "${BP_SKIP_SMOKE:-0}" != 1 ]]; then
   .venv/bin/python tools/simulator_cli.py run config/simulator-smoke.json \
     results/simulations/portable-smoke-$(date -u +%Y%m%d%H%M%S) > "$workspace/logs/smoke.json"
 fi
-printf '%s\n' "$runtime" > "$workspace/READY"
-printf '%s\n' "$package_id" > "$workspace/PACKAGE-ID"
+python3 "$package/update.py" adopt-package "$runtime"
 python3 "$package/install_shortcut.py"
 echo "PASS: simulator ready in $runtime"
 echo "Results and imported inputs stay inside $workspace"

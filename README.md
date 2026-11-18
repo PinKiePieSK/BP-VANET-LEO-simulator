@@ -1,19 +1,34 @@
-# Simulátor VANET/LEO pre bakalársku prácu
+# Simulátor VANET/LEO
 
-Aktuálny simulátor pripravuje pohyb vozidiel v SUMO, CAM a DENM vo Vanetza a pozemný paketový prenos v ns-3.38. Pri satelitnom scenári beží pozemné ITS-G5 a generický DVB prenos SNS-3 3.38 v jednom procese ns-3. Výstup obsahuje surové stopy, nezávislý verifier a replay. Model netvrdí, že reprodukuje skutočné modemy alebo prevádzkovú dostupnosť Starlinku, Iridia a Globalstaru.
+Simulátor spája pohyb vozidiel v SUMO s paketovým prenosom ITS-G5 v ns-3.38. CAM a DENM kóduje Vanetza. Scenáre so satelitnou vetvou používajú SNS-3 3.38 v tom istom procese ns-3.
 
-**Spustenie po stiahnutí z GitHubu:** v súkromnom repozitári je zdroj aplikácie, scenáre, testy a dokumentácia. Z vydania (Releases) stiahni `BP-Simulator.zip` aj kontrolný súčet `BP-Simulator.zip.sha256`, over ich príkazom `sha256sum -c BP-Simulator.zip.sha256`, ZIP rozbaľ a spusti `bash setup.sh`. Prenosný ZIP obsahuje aj pripnutý ns-3/SNS-3, Vanetza, offline Python balíky a slovenský OSM výrez. Samotný Git checkout tieto veľké závislosti neobsahuje a neslúži ako čistý inštalačný balík.
+## Inštalácia
 
-- [Odovzdanie a použitie simulátora](docs/simulator-odovzdanie.md)
-- [Technická správa k aktuálnej verzii](docs/technicka-sprava-simulatora-2026-11-18.md)
-- [Oficiálne zadanie BP](docs/zadanie-bp.md)
+Na Ubuntu 24.04 x86_64 stiahni z [vydaní](https://github.com/PinKiePieSK/BP-VANET-LEO-simulator/releases) súbory `BP-Simulator.zip` a `BP-Simulator.zip.sha256`:
 
-Spustenie aktuálneho editora v tomto vývojovom projekte:
+```bash
+sha256sum -c BP-Simulator.zip.sha256
+unzip BP-Simulator.zip
+cd BP-Simulator
+bash setup.sh
+```
+
+Inštalátor zostaví pribalené závislosti, overí beh a vytvorí spúšťaciu ikonu. Prístup k súkromnému repozitáru je potrebný na stiahnutie vydania a neskoršie aktualizácie. Zdrojový Git checkout neobsahuje veľké pripnuté závislosti ani OSM výrez; na čistú inštaláciu slúži ZIP.
+
+## Použitie a aktualizácie
+
+Editor otvorí ikona **BP Simulátor**. Na aktualizáciu zo schválenej vetvy `main` zavri editor a spusti ikonu **BP Simulátor – aktualizovať** alebo `bash update.sh` v rozbalenom balíku. Aktualizácia vytvorí nový runtime; staršie behy zostanú pri verzii, v ktorej vznikli. Zmeny pribalených závislostí a inštalačných skriptov sa vydávajú v novom ZIPe.
+
+- [Inštalácia a obsluha](docs/simulator-odovzdanie.md)
+- [Technická dokumentácia](docs/technicka-sprava-simulatora-2026-11-18.md)
+- [Zadanie práce](docs/zadanie-bp.md)
+
+## Vývojový zdroj
+
+Aktívny kód je v `src/`, `tools/` a `viewer/`. Editor vo vývojovom prostredí:
 
 ```bash
 .venv/bin/python tools/simulator_server.py --port 8765
 ```
 
-Otvoriť `http://127.0.0.1:8765/simulator.html`. Technické nastavenia sú prístupné priamo z editora. Nové behy sa ukladajú do `results/simulations/`. Používaný kód je priamo v `tools/`, `src/` a `viewer/`; staré sondy, stránky a testy sú v ich podpriečinkoch `legacy/`. Historické výsledky zostali zachované.
-
-Prenosný balík pre ďalší počítač vytvára `python3 scripts/package_simulator.py --destination /cesta/BP-Simulator`. Obsahuje pripnutý ns-3/SNS-3, Vanetza, orbitálne vstupy a OSM výrez; samotný zdrojový checkout tieto veľké súbory neobsahuje. ZIP a inštalačný postup sú opísané v odovzdávacom dokumente.
+Otvor `http://127.0.0.1:8765/simulator.html`. Nové behy sa ukladajú do `results/simulations/`. Prenosný balík sa vytvorí príkazom `python3 scripts/package_simulator.py --destination /cesta/BP-Simulator --source-revision COMMIT_SHA`; zadaný commit musí zodpovedať zdrojom v balíku.
