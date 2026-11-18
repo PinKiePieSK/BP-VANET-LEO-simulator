@@ -40,7 +40,7 @@ Po oznámení novej verzie zavri editor a spusti ikonu **BP Simulátor – aktua
 bash update.sh
 ```
 
-Prvé spustenie vyžaduje prihlásenie do GitHubu účtom s prístupom k súkromnému repozitáru. Aktualizátor prevezme schválený commit z vetvy `main`, vytvorí nový runtime a prepne naň až po úspešnom preflighte. Každá verzia má vlastné `results/simulations`; staré behy zostávajú overiteľné a prehrateľné. Ak sú lokálne zmenené spravované zdrojové súbory alebo sa menia pribalené závislosti či spúšťače, aktualizácia sa zastaví.
+Prvé spustenie vyžaduje prihlásenie do GitHubu účtom s prístupom k súkromnému repozitáru. Aktualizátor prevezme schválený commit z vetvy `main`, vytvorí nový runtime a prepne naň až po úspešnom preflighte. Každá verzia má vlastné `results/simulations`; staré behy zostávajú overiteľné a prehrateľné. Lokálne uložené scenáre sa do novej verzie nekopírujú; zostávajú v pôvodnom runtime. Ak sú lokálne zmenené spravované zdrojové súbory alebo sa menia pribalené závislosti či spúšťače, aktualizácia sa zastaví.
 
 Pri novom úplnom vydaní rozbaľ nový ZIP a spusti v ňom `bash setup.sh` s tým istým workspace. Inštalátor vytvorí nový runtime vedľa starého, prenesie uložené scenáre a orbitálne vstupy bez prepísania a po kontrolnom behu prepne ikony. Staré runtime a ich výsledky ponechá.
 

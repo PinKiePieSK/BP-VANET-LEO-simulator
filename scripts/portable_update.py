@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path, PurePosixPath
+from typing import Mapping
 
 
 REPOSITORY = "https://github.com/PinKiePieSK/BP-VANET-LEO-simulator.git"
@@ -143,25 +144,48 @@ def source_blob(cache: Path, revision: str, name: str) -> tuple[bytes, int] | No
     return git(cache, "show", f"{revision}:{name}"), int(mode, 8)
 
 
-def copy_runtime(current: Path, target: Path) -> None:
+def copy_runtime(current: Path, target: Path, managed: Mapping[str, str]) -> None:
     target.mkdir()
     for item in current.iterdir():
         destination = target / item.name
         if item.name in COPY_ROOTS and item.is_dir():
+            def ignore(directory: str, names: list[str]) -> set[str]:
+                ignored = set(shutil.ignore_patterns("__pycache__", "*.pyc", ".pytest_cache")(
+                    directory, names))
+                if item.name == "config" and Path(directory) == item:
+                    ignored.add("scenarios")
+                return ignored
+
             shutil.copytree(item, destination, symlinks=True,
-                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".pytest_cache"))
+                            ignore=ignore)
         elif item.name == "data" and item.is_dir():
             destination.mkdir()
             for child in item.iterdir():
                 dst = destination / child.name
                 if child.name in {"inputs", "orbits"} and child.is_dir():
-                    shutil.copytree(child, dst, symlinks=True)
+                    if child.name == "inputs":
+                        def ignore_user(directory: str, names: list[str]) -> set[str]:
+                            return {"user"} if Path(directory) == child and "user" in names else set()
+
+                        shutil.copytree(child, dst, symlinks=True, ignore=ignore_user)
+                    else:
+                        shutil.copytree(child, dst, symlinks=True)
                 else:
                     dst.symlink_to(child.resolve())
         elif item.name == "results":
             (destination / "simulations").mkdir(parents=True)
         else:
             destination.symlink_to(item.resolve())
+    for name in managed:
+        if name.startswith(("config/scenarios/", "data/inputs/user/")):
+            if not is_runtime_source(name):
+                raise RuntimeError(f"Neplatná cesta scenára: {name}")
+            source = current / name
+            if not source.is_file() or source.is_symlink():
+                raise RuntimeError(f"Chýba súbor vydaného scenára: {name}")
+            destination = target / name
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
 
 
 def apply_blob(target: Path, name: str, blob: tuple[bytes, int] | None) -> None:
@@ -286,7 +310,7 @@ def update(workspace: Path, repository: str = REPOSITORY, *, authenticate: bool 
             stage = Path(tempfile.mkdtemp(prefix=".pending-", dir=version_dir))
             stage.rmdir()
             try:
-                copy_runtime(current, stage)
+                copy_runtime(current, stage, managed)
                 for name in changed:
                     prior = current / name
                     if name not in managed and prior.exists():

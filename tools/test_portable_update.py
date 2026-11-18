@@ -35,7 +35,8 @@ class PortableUpdateTest(unittest.TestCase):
             "tools/simulator_cli.py": "import os\nprint(os.getcwd())\n",
             "viewer/simulator.js": "const version = 'old';\n",
             "config/simulator-example.json": "{}\n",
-            "data/inputs/user/personal.json": "{\"mine\": true}\n",
+            "config/scenarios/bundled.json": "{\"bundled\": true}\n",
+            "data/inputs/user/bundled/world.json": "{\"bundled\": true}\n",
         }
         for relative, content in files.items():
             target = self.source / relative
@@ -57,6 +58,7 @@ class PortableUpdateTest(unittest.TestCase):
         self._git("remote", "add", "origin", str(self.remote), cwd=self.source)
         (self.workspace / "READY").write_text(str(self.runtime) + "\n")
         managed = {relative: digest(self.runtime / relative) for relative in files}
+        self.managed = managed
         state = {"schema_version": 1, "repository": REPOSITORY, "branch": "main",
                  "revision": self.base, "active_runtime": "runtime",
                  "versions": {self.base: "runtime"}, "runs": {}, "managed": managed}
@@ -79,7 +81,12 @@ class PortableUpdateTest(unittest.TestCase):
         self._git("push", "origin", "main", cwd=self.source)
         return self._git("rev-parse", "HEAD", cwd=self.source).strip()
 
-    def test_delta_keeps_old_runtime_runs_and_user_files(self) -> None:
+    def test_delta_keeps_old_runs_without_copying_saved_scenarios(self) -> None:
+        saved = self.runtime / "config/scenarios/my-trip.json"
+        saved.write_text('{"saved": true}\n')
+        saved_data = self.runtime / "data/inputs/user/my-trip/world.json"
+        saved_data.parent.mkdir()
+        saved_data.write_text('{"roads": []}\n')
         target = self.commit({"tools/simulator_server.py": "print('new server')\n",
                               "viewer/simulator.js": "const version = 'new';\n",
                               "config/added.json": "{\"new\": true}\n",
@@ -91,7 +98,13 @@ class PortableUpdateTest(unittest.TestCase):
         active = runtime_path(self.workspace)
         self.assertEqual((active / "tools/simulator_server.py").read_text(), "print('new server')\n")
         self.assertEqual((self.runtime / "tools/simulator_server.py").read_text(), "print('old server')\n")
-        self.assertEqual((active / "data/inputs/user/personal.json").read_text(), '{"mine": true}\n')
+        self.assertEqual((active / "data/inputs/user/bundled/world.json").read_text(),
+                         '{"bundled": true}\n')
+        self.assertTrue((active / "config/scenarios/bundled.json").is_file())
+        self.assertFalse((active / "config/scenarios/my-trip.json").exists())
+        self.assertFalse((active / "data/inputs/user/my-trip").exists())
+        self.assertTrue(saved.is_file())
+        self.assertTrue(saved_data.is_file())
         self.assertFalse((active / "results/simulations/old-run").exists())
         self.assertEqual((self.runtime / "results/simulations/old-run/trace.txt").read_text(), "old trace\n")
         self.assertEqual(runtime_path(self.workspace, "old-run"), self.runtime)
@@ -103,12 +116,14 @@ class PortableUpdateTest(unittest.TestCase):
         self.assertEqual(runtime_path(self.workspace, "second-run"), active)
         (self.runtime / "results/simulations/later-old-run").mkdir()
         self.assertEqual(runtime_path(self.workspace, "later-old-run"), self.runtime)
+        (active / "config/scenarios/another-trip.json").write_text('{"saved": true}\n')
         newer = self.commit({"viewer/simulator.js": "const version = 'newer';\n"})
         self.assertEqual(update(self.workspace, str(self.remote), authenticate=False,
                                 validate=True)["revision"], newer)
         self.assertEqual(runtime_path(self.workspace, "old-run"), self.runtime)
         self.assertEqual(runtime_path(self.workspace, "second-run"), active)
         self.assertFalse((runtime_path(self.workspace) / "results/simulations/second-run").exists())
+        self.assertFalse((runtime_path(self.workspace) / "config/scenarios/another-trip.json").exists())
         self.assertEqual(update(self.workspace, str(self.remote), authenticate=False,
                                 validate=False)["status"], "CURRENT")
 
@@ -168,7 +183,7 @@ class PortableUpdateTest(unittest.TestCase):
         (package / "UPDATE-BASE.json").write_text(json.dumps(base))
         target = self.workspace / ".versions" / new_revision
         target.parent.mkdir()
-        copy_runtime(self.runtime, target)
+        copy_runtime(self.runtime, target, self.managed)
         outcome = adopt_package(self.workspace, package, target)
         self.assertEqual(outcome["status"], "READY")
         self.assertEqual(runtime_path(self.workspace), target)
@@ -191,7 +206,7 @@ class PortableUpdateTest(unittest.TestCase):
         (package / "UPDATE-BASE.json").write_text(json.dumps(base))
         target = self.workspace / ".versions" / new_revision
         target.parent.mkdir()
-        copy_runtime(self.runtime, target)
+        copy_runtime(self.runtime, target, self.managed)
         adopt_package(self.workspace, package, target)
         self.assertEqual(runtime_path(self.workspace, "old-run"), self.runtime)
         self.assertEqual(runtime_path(self.workspace), target)
