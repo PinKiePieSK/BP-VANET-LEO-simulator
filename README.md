@@ -1,27 +1,53 @@
 # Simulátor VANET/LEO
 
-Simulátor spája pohyb vozidiel v SUMO s paketovým prenosom ITS-G5 v ns-3.38. CAM a DENM kóduje Vanetza. Scenáre so satelitnou vetvou používajú SNS-3 3.38 v tom istom procese ns-3.
+Výskumný simulátor pre prenos správ medzi vozidlami, cestnými jednotkami (RSU) a satelitnou vetvou. Pohyb vozidiel počíta SUMO. Pozemný paketový prenos používa ns-3.38 s 802.11p OCB; správy CAM a DENM kóduje Vanetza. Integrované scenáre pridávajú generický satelitný model SNS-3 3.38.
 
-## Jeden projektový priečinok
+## Rozsah modelu
 
-Zdrojový kód na GitHube a lokálne spúšťaný kód sú ten istý Git projekt. Ikona na ploche smeruje priamo na `scripts/launch_local.py` v tomto priečinku. `src/`, `tools/`, `viewer/`, `config/` a `data/` sú súčasťou projektu; `.venv/`, prípadný miestny `local-python/`, `vendor/`, `build/`, `imports/`, `cache/`, `logs/` a `results/` vznikajú alebo zostávajú lokálne v tom istom priečinku a Git ich ignoruje. Osobné uložené scenáre sú v `config/scenarios/` a `data/inputs/user/`; štyri dodané ukážky sú sledované Gitom.
+- Editor pripravuje mapu, cestnú sieť, vozidlá, RSU, budovy, rádiové parametre a orbitálny vstup.
+- Runner prevádza cestnú sieť a trasy do SUMO, spúšťa pozemný alebo integrovaný paketový beh a ukladá surové stopy.
+- Verifikátor kontroluje vstupy, zdrojové hashe a stopy pred zobrazením výsledku v replay.
 
-Na čistom Ubuntu 24.04 x86_64 si priprav systémové nástroje uvedené v [návode](docs/instalacia-a-pouzitie.md), prihlás GitHub CLI k súkromnému repozitáru a spusti:
+Satelitná vetva je referenčný model založený na SNS-3. Výsledky nepredstavujú meranie ani validovanú predikciu komerčnej satelitnej služby. Podrobnosti o paketovej ceste, výstupoch a hraniciach modelu sú v [technickej správe](docs/technicka-sprava.md).
+
+## Inštalácia
+
+Podporované prostredie: Ubuntu 24.04 x86_64, Python 3.12, Firefox alebo Chromium a prístup k súkromnému repozitáru. Zoznam systémových balíkov je v [inštalačnom návode](docs/instalacia-a-pouzitie.md). Po ich inštalácii:
 
 ```bash
+gh auth login
 gh repo clone PinKiePieSK/BP-VANET-LEO-simulator BP-Simulator
 cd BP-Simulator
 python3 scripts/setup_single_folder.py
 ```
 
-Inštalátor stiahne pripnuté veľké závislosti z existujúceho vydania, overí ich SHA-256 a pripraví ich priamo tu. Zdrojové súbory berie z klonovaného commitu; nevytvára druhý pracovný runtime. Na ploche vytvorí jedinú ikonu. Po zatvorení simulátora spusti `python3 scripts/update_local.py` alebo v ponuke ikony na ploche zvoľ „Aktualizovať simulátor“.
+Príprava stiahne závislostný archív z GitHub vydania, overí jeho SHA-256, vytvorí `.venv`, zostaví Vanetza a ns-3/SNS-3 a vykoná preflight. Pracovný adresár je Git klon; názov cieľového priečinka nie je súčasťou konfigurácie simulácie.
 
-## Spustenie a overenie
+## Spustenie a kontrola
+
+Po príprave možno použiť ikonu **BP Simulátor** na ploche alebo príkazy z koreňa klonu:
 
 ```bash
 .venv/bin/python scripts/launch_local.py
 .venv/bin/python tools/simulator_cli.py preflight config/simulator-example.json
-.venv/bin/python -m unittest discover -s tools -p 'test_*.py' -q
+.venv/bin/python tools/simulator_cli.py run config/simulator-smoke.json results/simulations/moj-pokus
+.venv/bin/python tools/simulator_cli.py verify results/simulations/moj-pokus
 ```
 
-Nové behy a surové stopy sa ukladajú do `results/simulations/`. Staršie výsledky zachovávaj; ich `run-manifest.json` obsahuje hashe vstupov a použitých zdrojových súborov. Podrobnosti sú v [inštalačnom návode](docs/instalacia-a-pouzitie.md) a [technickej správe](docs/technicka-sprava.md).
+Každý beh vyžaduje nové ID výsledkového priečinka. Dodané scenáre sú v `config/scenarios/`; podrobnejšie použitie editora a CLI uvádza [inštalačný návod](docs/instalacia-a-pouzitie.md).
+
+## Aktualizácia a lokálne dáta
+
+Po zatvorení simulátora spusti z koreňa klonu:
+
+```bash
+python3 scripts/update_local.py
+```
+
+Aktualizátor prijíma iba pokračovanie vetvy `main` bez miestnych zmien sledovaných súborov. Po aktualizácii zopakuje prípravu a skontroluje štart servera. `.venv/`, `vendor/`, `build/`, `imports/`, `cache/`, `logs/`, `results/` a osobné scenáre v `config/scenarios/` a `data/inputs/user/` sú lokálne dáta mimo Gitu. Pri presune na ďalší počítač ich treba preniesť samostatne.
+
+`src/` obsahuje natívne enginy, `tools/` runner a verifikátory, `viewer/` rozhranie, `config/` referenčné konfigurácie a `data/` vstupy. Runtime závislostí sa pripravuje v `vendor/` a `build/`.
+
+## Zdroje dát a vydanie
+
+Mapový výrez Slovenska obsahuje dáta © prispievatelia OpenStreetMap, dostupné pod ODbL 1.0. Pôvod a kontrolné súčty orbitálnych vstupov sú v manifestoch `data/orbits/`. Licenčné súbory ns-3, SNS-3, Vanetza a ďalších závislostí zostávajú pri ich zdrojoch v závislostnom archíve. Postup zostavenia a overenia vydania je v [dokumente pre správcu vydania](docs/vydanie.md).

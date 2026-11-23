@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fast-forward the one local simulator folder to the approved GitHub main."""
+"""Update a simulator checkout from origin/main and validate startup."""
 from __future__ import annotations
 
 import fcntl

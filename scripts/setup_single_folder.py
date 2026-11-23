@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare a Git checkout in place, without a second package or workspace."""
+"""Install pinned runtime dependencies for a simulator Git checkout."""
 from __future__ import annotations
 
 import hashlib
@@ -18,16 +18,17 @@ from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY = "PinKiePieSK/BP-VANET-LEO-simulator"
-DEPENDENCY_RELEASE = "v2026-11-18.2"
-DEPENDENCY_SHA256 = "26aad5ec65a52e889c201ce2b9df781ad45bd24964ba5ab7a552db4e6f4ac5e9"
+DEPENDENCY_RELEASE = "v2026-11-23.2"
+DEPENDENCY_ASSET = "BP-VANET-LEO-dependencies.zip"
+DEPENDENCY_SHA256 = "c848194622f6afb6ca20fc159ad3a3a34368f4dd0b8c931ff0b2ab23680a646d"
 PBF_SHA256 = "4af3affa32fdc294ade673b409a0dc7f5c6c908875776ff06530d7bd923a9185"
 ARCHIVE_ROOTS = {
-    "BP-Simulator/engine/vendor/": "vendor/",
-    "BP-Simulator/engine/build/": "build/",
-    "BP-Simulator/engine/release/python-wheels/": "release/python-wheels/",
-    "BP-Simulator/engine/data/derived/": "data/derived/",
-    "BP-Simulator/engine/data/additional-input/": "data/additional-input/",
-    "BP-Simulator/osm/": "release/osm/",
+    "bp-vanet-leo-dependencies/vendor/": "vendor/",
+    "bp-vanet-leo-dependencies/build/": "build/",
+    "bp-vanet-leo-dependencies/release/python-wheels/": "release/python-wheels/",
+    "bp-vanet-leo-dependencies/data/derived/": "data/derived/",
+    "bp-vanet-leo-dependencies/data/additional-input/": "data/additional-input/",
+    "bp-vanet-leo-dependencies/release/osm/": "release/osm/",
 }
 
 
@@ -126,8 +127,8 @@ def ensure_dependencies() -> None:
     with tempfile.TemporaryDirectory(prefix="bp-download-") as directory:
         folder = Path(directory)
         run(executable, "release", "download", DEPENDENCY_RELEASE, "--repo", REPOSITORY,
-            "--pattern", "BP-Simulator.zip", "--dir", str(folder))
-        archive = folder / "BP-Simulator.zip"
+            "--pattern", DEPENDENCY_ASSET, "--dir", str(folder))
+        archive = folder / DEPENDENCY_ASSET
         if sha256(archive) != DEPENDENCY_SHA256:
             raise RuntimeError("Downloaded dependency ZIP has a different SHA-256")
         extract_dependencies(archive)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Launch the simulator directly from its single source and data directory."""
+"""Start the simulator server and browser from this checkout."""
 from __future__ import annotations
 
 import argparse

@@ -1,6 +1,6 @@
 # Technická správa k simulátoru VANET/LEO
 
-**Stav modelu:** 23. 11. 2026. **Runtime:** SUMO, Vanetza v26.06, ns-3.38 a SNS-3 3.38. Táto správa opisuje aktuálny pracovný simulátor v jednom projektovom priečinku, nie výsledky budúceho experimentu.
+**Revízia:** 23. 11. 2026. **Komponenty:** SUMO, Vanetza v26.06, ns-3.38 a SNS-3 3.38. Správa opisuje implementáciu, vstupy, výstupy a hranice modelu.
 
 ## 1. Účel a rozsah
 
@@ -10,9 +10,9 @@ Satelitná vetva je generický DVB model SNS-3 s orbitálnymi a terminálovými 
 
 ## 2. Inštalácia, spustenie a súbory scenára
 
-Na Ubuntu 24.04 x86_64 klonovať GitHub projekt do `BP-Simulator/` a spustiť `python3 scripts/setup_single_folder.py`. Inštalátor overí pripnutý slovenský OSM súbor, pripraví veľké závislosti z vydania, zostaví Vanetza a ns-3/SNS-3, vykoná preflight a vytvorí ikonu. Aplikácia, vstupy a výsledky v `results/simulations/` zostávajú v tom istom projektovom priečinku. Git sleduje kód a dodané ukážky; lokálne zostavené závislosti a osobné dáta ignoruje.
+Na Ubuntu 24.04 x86_64 naklonovať repozitár a spustiť `python3 scripts/setup_single_folder.py`. Inštalátor overí pripnutý slovenský OSM súbor, prevezme zostaviteľné závislosti z GitHub vydania, zostaví Vanetza a ns-3/SNS-3, vykoná preflight a vytvorí ikonu. Podrobný postup a systémové balíky sú v [inštalačnom návode](instalacia-a-pouzitie.md). Výsledky sa ukladajú do `results/simulations/` v klone; zostavené závislosti a osobné dáta Git nesleduje.
 
-Pripravené scenáre: `realna-d1-pozemna`, `realna-d1-satelit`, `navrh-koridor-pozemna`, `navrh-koridor-satelit`. Dvojice používajú rovnakú dopravu a rozdielnu komunikačnú vetvu. Dopravný dopyt je syntetický. Pri porovnaní treba zaznamenať verziu balíka, vstupný JSON, seed, číslo ns-3 behu a ID výsledku.
+Pripravené scenáre: `realna-d1-pozemna`, `realna-d1-satelit`, `navrh-koridor-pozemna`, `navrh-koridor-satelit`. Dvojice používajú rovnakú dopravu a rozdielnu komunikačnú vetvu. Dopravný dopyt je syntetický. Pri porovnaní treba zaznamenať Git commit, vstupný JSON, seed, číslo ns-3 behu a ID výsledku.
 
 Terminálové rozhranie z koreňa projektu:
 
@@ -22,7 +22,7 @@ Terminálové rozhranie z koreňa projektu:
 .venv/bin/python tools/simulator_cli.py verify results/simulations/moje-meranie-1
 ```
 
-Každý beh potrebuje nové ID. Pri aktualizácii treba zavrieť okno, v tom istom priečinku vykonať `git pull --ff-only` a znovu spustiť `python3 scripts/setup_single_folder.py`. Staré výsledky sa neprepisujú. Manifest zaznamenáva hashe použitého zdroja, preto starší výsledok nemusí prejsť overením zmeneným kódom; pri vedeckej práci treba zachovať pôvodný commit.
+Každý beh potrebuje nové ID. Po zavretí simulátora spustiť `python3 scripts/update_local.py`. Updater vykoná fast-forward, zopakuje prípravu a overí štart servera. Staré výsledky sa neprepisujú. Manifest zaznamenáva hashe použitého zdroja, preto starší výsledok nemusí prejsť overením zmeneným kódom; pri reprodukcii treba zachovať pôvodný commit.
 
 ## 3. Ovládanie editora
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Point the desktop icon at the single local Git project."""
+"""Install a desktop launcher for the current simulator checkout."""
 from __future__ import annotations
 
 import shutil

@@ -1,37 +1,65 @@
-# Inštalácia a obsluha simulátora VANET/LEO
+# Inštalácia a používanie simulátora VANET/LEO
 
-## Jediný adresár
+## Podporované prostredie
 
-Aktívny zdroj, lokálne zostavené závislosti, uložené scenáre a výsledky patria do jedného priečinka `BP-Simulator/`. Ikona spúšťa server z tohto priečinka. GitHub sleduje zdrojové súbory, konfigurácie, štyri ukážkové scenáre a skripty; miestne `.venv/`, prípadný `local-python/`, `vendor/`, `build/`, `imports/`, `cache/`, `logs/`, `results/` a osobné scenáre zostávajú v tomto istom priečinku, ale Git ich neodosiela.
+Inštalačný postup je určený pre Ubuntu 24.04 x86_64 s Pythonom 3.12 a grafickým prostredím. Vyžaduje prístup k súkromnému repozitáru `PinKiePieSK/BP-VANET-LEO-simulator` a jeho GitHub vydaniam. Windows, macOS a ARM nie sú overené cieľové platformy.
 
-Podporovaná čistá inštalácia používa Ubuntu 24.04 x86_64 a Python 3.12. Pred inštaláciou treba mať prístup k súkromnému repozitáru cez Git a GitHub CLI (`gh auth login`), webový prehliadač Firefox alebo Chromium a systémové závislosti:
+## Prvá inštalácia
 
-```bash
-sudo apt-get update
-sudo apt-get install git gh build-essential cmake ninja-build pkg-config python3.12 python3.12-venv python3.12-dev sumo sumo-tools libxml2-dev libgsl-dev libsqlite3-dev libboost-all-dev libssl-dev zstd osmium-tool firefox
-gh auth login
-gh repo clone PinKiePieSK/BP-VANET-LEO-simulator BP-Simulator
-cd BP-Simulator
-python3 scripts/setup_single_folder.py
-```
+1. Nainštaluj systémové závislosti:
 
-Skript používa iba tento projektový priečinok. Veľké pripnuté závislosti prevezme z vydania `v2026-11-18.2`, overí SHA-256, pripraví Python 3.12, Vanetza a ns-3.38/SNS-3 3.38, overí scenár a vytvorí ikonu na ploche. Kód aplikácie zostáva kódom klonovaného commitu na GitHube. Dátový výrez Slovenska ukladá do `imports/osm/` a mapovú cache do `cache/osm/` v tom istom priečinku.
+   ```bash
+   sudo apt-get update
+   sudo apt-get install git gh build-essential cmake ninja-build pkg-config python3.12 python3.12-venv python3.12-dev sumo sumo-tools libxml2-dev libgsl-dev libsqlite3-dev libboost-all-dev libssl-dev zstd osmium-tool firefox
+   ```
 
-## Súbory scenára a behu
+2. Prihlás GitHub CLI a naklonuj repozitár do zvoleného adresára:
 
-Editor vytvára nové scenáre ako `config/scenarios/<id>.json`, `data/inputs/user/<id>/world.json` a `data/inputs/user/<id>/demand.json`. Dodané ukážky sú `realna-d1-pozemna`, `realna-d1-satelit`, `navrh-koridor-pozemna` a `navrh-koridor-satelit`. Osobné scenáre a ich výsledky nezmaž pri aktualizácii.
+   ```bash
+   gh auth login
+   gh auth status
+   cd ~/Documents
+   gh repo clone PinKiePieSK/BP-VANET-LEO-simulator BP-Simulator
+   cd BP-Simulator
+   ```
 
-Počas spustenia vznikne požiadavka a log v `results/jobs/`. Každý beh má jedinečný priečinok `results/simulations/<id>/` s kópiami vstupov, surovými stopami a `run-manifest.json`. Overenie kontroluje vstupy, hashe zdrojov a raw stopy. Úspešné overenie znamená konzistentný beh; počet doručených správ vyhodnoť samostatne.
+3. Priprav závislosti a skontroluj inštaláciu:
 
-Príkazy z koreňa projektu:
+   ```bash
+   python3 scripts/setup_single_folder.py
+   .venv/bin/python scripts/launch_local.py --check
+   ```
+
+`setup_single_folder.py` prevezme pripnutý archív závislostí z určeného GitHub vydania a pred rozbalením skontroluje SHA-256. Potom vytvorí Python prostredie, zostaví Vanetza a ns-3.38/SNS-3 3.38, vykoná preflight a vytvorí ikonu na ploche. Kompilácia pri prvej inštalácii môže trvať niekoľko minút. Názov adresára `BP-Simulator` je len príklad; skripty odvodzujú koreň projektu zo svojho umiestnenia.
+
+Zdroj aplikácie pochádza z Git commitu. GitHub vydanie dodáva zostaviteľné závislosti, Python wheels a mapové dáta. Inštalácia z archívu zdrojov bez adresára `.git` nepodporuje automatický updater.
+
+## Spustenie a scenáre
+
+Simulátor otvorí ikona **BP Simulátor** alebo príkaz z koreňa klonu:
 
 ```bash
 .venv/bin/python scripts/launch_local.py
+```
+
+Editor ukladá osobné scenáre do `config/scenarios/<id>.json` a ich mapové a dopravné vstupy do `data/inputs/user/<id>/`. Dodané príklady sú `realna-d1-pozemna`, `realna-d1-satelit`, `navrh-koridor-pozemna` a `navrh-koridor-satelit`. CLI umožňuje samostatný preflight, beh a verifikáciu:
+
+```bash
 .venv/bin/python tools/simulator_cli.py preflight config/scenarios/realna-d1-pozemna.json
 .venv/bin/python tools/simulator_cli.py run config/scenarios/realna-d1-pozemna.json results/simulations/moj-pokus-1
 .venv/bin/python tools/simulator_cli.py verify results/simulations/moj-pokus-1
 ```
 
-## Aktualizácia bez druhého runtime
+Každému behu priraď nové ID. Výsledkový priečinok obsahuje kópie vstupov, surové stopy a `run-manifest.json`. Verifikácia kontroluje integritu behu; z jej výsledku samotného nevyplýva doručenie každého paketu. Formáty a interpretácia metrík sú v [technickej správe](technicka-sprava.md).
 
-Zavri okno simulátora a v projektovom priečinku spusti `python3 scripts/update_local.py`, alebo v ponuke ikony na ploche zvoľ „Aktualizovať simulátor“. Aktualizátor preverí čistotu sledovaných súborov, stiahne novú vetvu `main`, vykoná iba pokračujúci posun, znovu pripraví projekt a overí štart servera. Pri neúspešnej príprave vráti zdrojový kód na pôvodný commit. `results/` a osobné scenáre zostávajú v tom istom priečinku. Starší `run-manifest.json` obsahuje hashe pôvodného zdroja a nemusí prejsť overením novým kódom. GitHub vydanie `v2026-11-18.2` je len pripnutý zdroj veľkých závislostí, nie ďalší pracovný runtime.
+## Aktualizácia
+
+Zavri okno simulátora a v koreňovom adresári klonu spusti:
+
+```bash
+python3 scripts/update_local.py
+```
+
+Rovnaký príkaz je dostupný ako akcia **Aktualizovať simulátor** v ponuke ikony na ploche. Updater vyžaduje vetvu `main`, pôvodný GitHub remote a čisté sledované súbory. Povolí iba fast-forward, následne zopakuje prípravu a overí štart servera. Pri zlyhaní prípravy vráti sledovaný zdrojový kód na predchádzajúci commit.
+
+Git nesleduje `.venv/`, `vendor/`, `build/`, `imports/`, `cache/`, `logs/`, `results/` ani osobné scenáre. Aktualizátor tieto dáta nemaže. Staršie výsledky môžu mať manifest s hashmi predchádzajúceho zdroja; pre reprodukciu používaj zdrojový commit uvedený v danom manifeste.
