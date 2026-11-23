@@ -12,11 +12,10 @@ Satelitná vetva je referenčný model založený na SNS-3. Výsledky nepredstav
 
 ## Inštalácia
 
-Podporované prostredie: Ubuntu 24.04 x86_64, Python 3.12, Firefox alebo Chromium a prístup k súkromnému repozitáru. Zoznam systémových balíkov je v [inštalačnom návode](docs/instalacia-a-pouzitie.md). Po ich inštalácii:
+Podporované prostredie: Ubuntu 24.04 x86_64, Python 3.12 a Firefox alebo Chromium. Repozitár aj závislostný archív sú verejne dostupné. Zoznam systémových balíkov je v [inštalačnom návode](docs/instalacia-a-pouzitie.md). Po ich inštalácii:
 
 ```bash
-gh auth login
-gh repo clone PinKiePieSK/BP-VANET-LEO-simulator BP-Simulator
+git clone https://github.com/PinKiePieSK/BP-VANET-LEO-simulator.git BP-Simulator
 cd BP-Simulator
 python3 scripts/setup_single_folder.py
 ```

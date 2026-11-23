@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import shlex
 import shutil
 import stat
 import subprocess
@@ -14,11 +13,13 @@ import tempfile
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
+from urllib.error import URLError
+from urllib.request import urlopen
 
 
 ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY = "PinKiePieSK/BP-VANET-LEO-simulator"
-DEPENDENCY_RELEASE = "v2026-11-23.2"
+DEPENDENCY_RELEASE = "v2026-11-23.3"
 DEPENDENCY_ASSET = "BP-VANET-LEO-dependencies.zip"
 DEPENDENCY_SHA256 = "c848194622f6afb6ca20fc159ad3a3a34368f4dd0b8c931ff0b2ab23680a646d"
 PBF_SHA256 = "4af3affa32fdc294ade673b409a0dc7f5c6c908875776ff06530d7bd923a9185"
@@ -51,23 +52,6 @@ def dependencies_ready() -> bool:
         "build/openssl-dev-local/usr/include/openssl/ssl.h",
     )) and (ROOT / "release/python-wheels").is_dir() and \
         (ROOT / "release/osm/slovakia-261031.osm.pbf").is_file()
-
-
-def github_cli() -> str | None:
-    executable = shutil.which("gh")
-    if executable:
-        return executable
-    local = ROOT / "local-bin/gh"
-    return str(local) if local.is_file() and os.access(local, os.X_OK) else None
-
-
-def configure_git_auth() -> None:
-    if not (ROOT / ".git").exists():
-        return
-    executable = github_cli()
-    if executable:
-        helper = "!" + shlex.quote(executable) + " auth git-credential"
-        run("git", "config", "--local", "credential.https://github.com.helper", helper)
 
 
 def extract_dependencies(archive: Path) -> None:
@@ -109,6 +93,14 @@ def extract_dependencies(archive: Path) -> None:
             folder.rename(destination)
 
 
+def download_dependency_archive(url: str, destination: Path) -> None:
+    try:
+        with urlopen(url, timeout=60) as response, destination.open("wb") as output:
+            shutil.copyfileobj(response, output, length=1024 * 1024)
+    except (OSError, URLError) as error:
+        raise RuntimeError(f"Dependency download failed: {error}") from error
+
+
 def ensure_dependencies() -> None:
     if dependencies_ready():
         return
@@ -121,14 +113,11 @@ def ensure_dependencies() -> None:
             raise RuntimeError("Local dependency ZIP has a different SHA-256")
         extract_dependencies(archive)
         return
-    executable = github_cli()
-    if not executable:
-        raise RuntimeError("Install GitHub CLI (gh) and log in to access the private dependency release")
     with tempfile.TemporaryDirectory(prefix="bp-download-") as directory:
         folder = Path(directory)
-        run(executable, "release", "download", DEPENDENCY_RELEASE, "--repo", REPOSITORY,
-            "--pattern", DEPENDENCY_ASSET, "--dir", str(folder))
         archive = folder / DEPENDENCY_ASSET
+        url = f"https://github.com/{REPOSITORY}/releases/download/{DEPENDENCY_RELEASE}/{DEPENDENCY_ASSET}"
+        download_dependency_archive(url, archive)
         if sha256(archive) != DEPENDENCY_SHA256:
             raise RuntimeError("Downloaded dependency ZIP has a different SHA-256")
         extract_dependencies(archive)
@@ -226,7 +215,6 @@ def main() -> None:
     missing = [name for name in required if not shutil.which(name)]
     if missing:
         raise RuntimeError("Install system build tools before setup: " + ", ".join(missing))
-    configure_git_auth()
     ensure_dependencies()
     ensure_osm()
     ensure_python()

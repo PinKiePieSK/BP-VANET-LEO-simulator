@@ -2,7 +2,7 @@
 
 ## Podporované prostredie
 
-Inštalačný postup je určený pre Ubuntu 24.04 x86_64 s Pythonom 3.12 a grafickým prostredím. Vyžaduje prístup k súkromnému repozitáru `PinKiePieSK/BP-VANET-LEO-simulator` a jeho GitHub vydaniam. Windows, macOS a ARM nie sú overené cieľové platformy.
+Inštalačný postup je určený pre Ubuntu 24.04 x86_64 s Pythonom 3.12 a grafickým prostredím. Repozitár `PinKiePieSK/BP-VANET-LEO-simulator` a závislostný archív sú verejne dostupné; GitHub účet sa nevyžaduje. Windows, macOS a ARM nie sú overené cieľové platformy.
 
 ## Prvá inštalácia
 
@@ -10,16 +10,14 @@ Inštalačný postup je určený pre Ubuntu 24.04 x86_64 s Pythonom 3.12 a grafi
 
    ```bash
    sudo apt-get update
-   sudo apt-get install git gh build-essential cmake ninja-build pkg-config python3.12 python3.12-venv python3.12-dev sumo sumo-tools libxml2-dev libgsl-dev libsqlite3-dev libboost-all-dev libssl-dev zstd osmium-tool firefox
+   sudo apt-get install git build-essential cmake ninja-build pkg-config python3.12 python3.12-venv python3.12-dev sumo sumo-tools libxml2-dev libgsl-dev libsqlite3-dev libboost-all-dev libssl-dev zstd osmium-tool firefox
    ```
 
-2. Prihlás GitHub CLI a naklonuj repozitár do zvoleného adresára:
+2. Naklonuj repozitár do zvoleného adresára:
 
    ```bash
-   gh auth login
-   gh auth status
    cd ~/Documents
-   gh repo clone PinKiePieSK/BP-VANET-LEO-simulator BP-Simulator
+   git clone https://github.com/PinKiePieSK/BP-VANET-LEO-simulator.git BP-Simulator
    cd BP-Simulator
    ```
 

@@ -5,8 +5,6 @@ from __future__ import annotations
 import fcntl
 import json
 import os
-import shlex
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -37,19 +35,6 @@ def git(root: Path, *args: str, environment: dict[str, str] | None = None) -> st
     return command(root, "git", *args, environment=environment)
 
 
-def configure_auth(root: Path, repository: str) -> None:
-    if not repository.startswith("https://github.com/"):
-        return
-    executable = shutil.which("gh")
-    if not executable:
-        local = root / "local-bin/gh"
-        executable = str(local) if local.is_file() and os.access(local, os.X_OK) else None
-    if not executable:
-        raise RuntimeError("Chýba GitHub CLI (gh) potrebný na prístup k súkromnému repozitáru")
-    git(root, "config", "--local", "credential.https://github.com.helper",
-        "!" + shlex.quote(executable) + " auth git-credential")
-
-
 def revision(root: Path, name: str) -> str:
     return git(root, "rev-parse", name)
 
@@ -72,7 +57,6 @@ def update(root: Path = ROOT, repository: str = REPOSITORY) -> dict[str, str]:
             raise RuntimeError(f"Neočakávaný Git remote: {actual_remote}")
         if git(root, "status", "--porcelain=v1", "--untracked-files=no"):
             raise RuntimeError("Najprv vyrieš miestne zmeny sledovaných súborov")
-        configure_auth(root, repository)
         environment = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
         before = revision(root, "HEAD")
         git(root, "fetch", "origin", "main", environment=environment)
