@@ -96,8 +96,17 @@ def update(root: Path = ROOT, repository: str = REPOSITORY) -> dict[str, str]:
 
 
 if __name__ == "__main__":
+    wait_for_enter = "--wait" in sys.argv[1:]
+    if any(arg != "--wait" for arg in sys.argv[1:]):
+        raise SystemExit("Použitie: update_local.py [--wait]")
     try:
         print(json.dumps(update(), sort_keys=True))
     except (OSError, RuntimeError) as error:
         print(error, file=sys.stderr)
         raise SystemExit(1)
+    finally:
+        if wait_for_enter and sys.stdin.isatty():
+            try:
+                input("\nStlač Enter na zatvorenie okna...")
+            except EOFError:
+                pass

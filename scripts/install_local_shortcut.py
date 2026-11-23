@@ -39,8 +39,7 @@ def install() -> Path:
         f"Path={ROOT}\nIcon=bp-simulator\nTerminal=false\n"
         "StartupNotify=true\nCategories=Education;Science;\nActions=Update;\n\n"
         "[Desktop Action Update]\nName=Aktualizovať simulátor\n"
-        f"Exec=python3 {quoted(ROOT / 'scripts/update_local.py')}\n"
-        f"Path={ROOT}\nTerminal=true\n")
+        f"Exec=x-terminal-emulator -e python3 {quoted(ROOT / 'scripts/update_local.py')} --wait\n")
     target.chmod(0o755)
     gio = shutil.which("gio")
     if gio:
