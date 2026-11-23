@@ -1,16 +1,9 @@
-# Proces vydania
+# Distribúcia simulátora
 
-Zdrojový kód aplikácie je v Git repozitári. GitHub Release obsahuje archív závislostí, ktorý inštalátor sťahuje podľa pevného názvu vydania, názvu súboru a SHA-256 v `scripts/setup_single_folder.py`. Archív nie je alternatívnym zdrojovým stromom aplikácie.
+Aplikačný kód sa distribuuje cez Git repozitár. GitHub Release poskytuje archív zdrojov runtime a vstupných dát potrebných na zostavenie: ns-3.38/SNS-3 3.38, Vanetza, Python wheels a mapový výrez. Inštalátor `scripts/setup_single_folder.py` určuje značku vydania, názov archívu a jeho SHA-256.
 
-## Príprava závislostí
+## Podporovaná verzia
 
-1. Overiť piny zdrojov ns-3.38/SNS-3, Vanetza, Python wheels a mapových dát v pracovnom projekte.
-2. Zostaviť archív príkazom `python3 scripts/build_dependency_archive.py /cesta/BP-VANET-LEO-dependencies.zip`.
-3. Overiť výsledok pomocou `sha256sum` a `unzip -tq`. Hodnotu SHA-256 a názov súboru zapísať do `scripts/setup_single_folder.py`.
-4. V čistom Git klone vykonať `scripts/setup_single_folder.py`, štart servera, nový skúšobný beh a `simulator_cli.py verify`. Pri lokálnej skúške možno použiť `BP_SIM_DEPENDENCY_ZIP` na presný ešte nezverejnený archív.
+Podporovaná je inštalácia z aktuálnej vetvy `main`. Jej inštalátor stiahne pripnutý závislostný archív z GitHub Release a pripraví ho v adresári klonu. Postup inštalácie a aktualizácie je v [návode](instalacia-a-pouzitie.md); obsah a kontrolný súčet archívu sú uvedené pri [aktuálnom vydaní](https://github.com/PinKiePieSK/BP-VANET-LEO-simulator/releases/latest).
 
-## Zverejnenie
-
-Po úspešnej kontrole odoslať zdrojový commit na `main`, vytvoriť značku a GitHub Release na tomto commite a priložiť presne pomenovaný archív. Popis vydania uvádza podporovanú platformu, obsah archívu, SHA-256, inštalačné príkazy, vykonané overenie a hranice modelu. Po zverejnení zopakovať stiahnutie archívu cez GitHub CLI a skontrolovať SHA-256. Následne vykonať čistú inštaláciu z publikovaného klonu.
-
-Vydanie, na ktoré odkazuje podporovaný inštalátor, musí zostať dostupné. Odstránenie takého vydania preruší nové inštalácie aj vtedy, keď Git commit a značka stále existujú. Staršie commity môžu odkazovať na staršie vydania; pri rozhodnutí o ich odstránení treba výslovne uviesť, že už nepodporujú reprodukovateľnú inštaláciu.
+Projekt udržiava jeden aktuálny release. Staršie značky Git zostávajú záznamom zdrojových commitov; po odstránení ich závislostných archívov z nich nie je zaručená nová inštalácia. Uložené výsledky naďalej uvádzajú zdroj a vstupy použité pri svojom vzniku.

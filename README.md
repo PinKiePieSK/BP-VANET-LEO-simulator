@@ -50,4 +50,4 @@ Aktualizátor prijíma iba pokračovanie vetvy `main` bez miestnych zmien sledov
 
 ## Zdroje dát a vydanie
 
-Mapový výrez Slovenska obsahuje dáta © prispievatelia OpenStreetMap, dostupné pod ODbL 1.0. Pôvod a kontrolné súčty orbitálnych vstupov sú v manifestoch `data/orbits/`. Licenčné súbory ns-3, SNS-3, Vanetza a ďalších závislostí zostávajú pri ich zdrojoch v závislostnom archíve. Postup zostavenia a overenia vydania je v [dokumente pre správcu vydania](docs/vydanie.md).
+Mapový výrez Slovenska obsahuje dáta © prispievatelia OpenStreetMap, dostupné pod ODbL 1.0. Pôvod a kontrolné súčty orbitálnych vstupov sú v manifestoch `data/orbits/`. Licenčné súbory ns-3, SNS-3, Vanetza a ďalších závislostí zostávajú pri ich zdrojoch v závislostnom archíve. Spôsob distribúcie zdroja a závislostí opisuje [dokumentácia vydania](docs/vydanie.md).
