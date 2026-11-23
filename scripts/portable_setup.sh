@@ -141,12 +141,16 @@ if not old.is_relative_to(workspace) or not old.is_dir():
 print(old)
 PY
 )"
-  for rel in config/scenarios data/inputs/user data/orbits; do
+  for rel in config/scenarios data/inputs/user; do
     if [[ "$previous" != "$runtime" && -d "$previous/$rel" ]]; then
       mkdir -p "$runtime/$rel"
-      cp -an "$previous/$rel/." "$runtime/$rel/"
+      cp -a "$previous/$rel/." "$runtime/$rel/"
     fi
   done
+  if [[ "$previous" != "$runtime" && -d "$previous/data/orbits" ]]; then
+    mkdir -p "$runtime/data/orbits"
+    cp -an "$previous/data/orbits/." "$runtime/data/orbits/"
+  fi
 fi
 cd "$runtime"
 

@@ -5,11 +5,12 @@ import os
 import subprocess
 from pathlib import Path
 
-from simulator_platform import CHECKOUT, OPENSSL, ROOT, VANETZA, VANETZA_BUILD
+from simulator_platform import CHECKOUT, OPENSSL, ROOT, VANETZA, VANETZA_BUILD, repair_generated_ns3_headers
 
 
 def compile_packet_engine(output: Path, source: Path) -> Path:
     """Use the same libraries and compiler options as the verified native runner."""
+    repair_generated_ns3_headers()
     libraries = sorted((VANETZA_BUILD / "lib/static").glob("*.a"))
     if not libraries:
         raise RuntimeError("Vanetza static libraries absent")

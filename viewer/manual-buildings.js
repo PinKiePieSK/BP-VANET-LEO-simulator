@@ -23,6 +23,21 @@
     y:(b.polygon_xy_m[0][1]+b.polygon_xy_m[2][1])/2,
     width:b.polygon_xy_m[1][0]-b.polygon_xy_m[0][0],
     length:b.polygon_xy_m[2][1]-b.polygon_xy_m[1][1],height:b.height_central_m});
+  // A road centreline needs room for its carriageway; the empty-map editor uses a 7 m corridor.
+  const corridor=3.5;
+  function segmentTouchesBox(a,b,box){
+    let lo=0,hi=1;const dx=b[0]-a[0],dy=b[1]-a[1];
+    for(const [p,q] of [[-dx,a[0]-box.minX],[dx,box.maxX-a[0]],[-dy,a[1]-box.minY],[dy,box.maxY-a[1]]]){
+      if(p===0){if(q<0)return false;continue;}
+      const t=q/p;if(p<0)lo=Math.max(lo,t);else hi=Math.min(hi,t);
+      if(lo>hi)return false;
+    }
+    return true;
+  }
+  function boxOf(polygon){const xs=polygon.map(p=>p[0]),ys=polygon.map(p=>p[1]);return {minX:Math.min(...xs)-corridor,maxX:Math.max(...xs)+corridor,minY:Math.min(...ys)-corridor,maxY:Math.max(...ys)+corridor};}
+  const shapeTouches=(shape,polygon)=>{const box=boxOf(polygon);return shape.slice(1).some((p,i)=>segmentTouchesBox(shape[i],p,box));};
+  const canPlace=polygon=>!(S.world?.roads?.segments||[]).some(road=>shapeTouches(road.shape,polygon));
+  const roadOverlaps=shape=>list().some(building=>building.polygon_xy_m?.length&&shapeTouches(shape,building.polygon_xy_m));
   function ensure(){
     if(S.mapMode!=='empty'||!S.scenario?.satellite)throw Error('Budovy možno kresliť v prázdnom svete.');
     if(source()?.sources?.osm?.provider==='manual-editor-v1')return source();
@@ -39,15 +54,18 @@
     if(![x,y,width,length,roofHeight].every(Number.isFinite)||width<2||length<2||roofHeight<1||roofHeight>500||
        x-width/2<0||x+width/2>extent()||y-length/2<0||y+length/2>height())
       throw Error('Budova musí mať rozmery aspoň 2 m, výšku 1–500 m a celá ležať vo výreze.');
-    b.polygon_xy_m=[[x-width/2,y-length/2],[x+width/2,y-length/2],[x+width/2,y+length/2],[x-width/2,y+length/2]]
+    const polygon=[[x-width/2,y-length/2],[x+width/2,y-length/2],[x+width/2,y+length/2],[x-width/2,y+length/2]]
       .map(p=>p.map(v=>Math.round(v*100)/100));
+    if(!canPlace(polygon))throw Error('Budova nesmie ležať na ceste (vrátane 3,5 m okraja vozovky).');
+    b.polygon_xy_m=polygon;
     b.height_min_m=b.height_central_m=b.height_max_m=Math.round(roofHeight*100)/100;
   }
   function add(p){
     const env=ensure();let n=0;while(env.buildings.some(b=>b.id===`manual-building-${n}`))n++;
     const b={id:`manual-building-${n}`,polygon_xy_m:[],height_min_m:10,height_central_m:10,height_max_m:10,
       height_source:'manual_user',height_reference:'user-drawn rectangle',building_class:'unspecified'};
-    setRectangle(b,Math.max(10,Math.min(extent()-10,p.x)),Math.max(10,Math.min(height()-10,p.y)),20,20,10);
+    try{setRectangle(b,Math.max(10,Math.min(extent()-10,p.x)),Math.max(10,Math.min(height()-10,p.y)),20,20,10);}
+    catch(error){editor.status(error.message);return;}
     env.buildings.push(b);S.selected={type:'building',id:b.id};S.inspectorKey=null;
     editor.rebuildObjectPicker();editor.markDirty();editor.status(`Budova ${b.id} má pôdorys 20 × 20 m a výšku 10 m. Rozmery zmeníš vpravo.`);
   }
@@ -62,7 +80,7 @@
       }
       const d=dimensions(b),r=document.createElementNS(ns,'rect');
       for(const [key,value] of Object.entries({x:d.x-d.width/2,y:height()-d.y-d.length/2,width:d.width,height:d.length,
-        fill:'#a78070',stroke:S.selected?.id===b.id?'#ffe08a':'#f5c2a3','stroke-width':2,
+        class:'draggable-building',fill:'#a78070',stroke:S.selected?.id===b.id?'#ffe08a':'#f5c2a3','stroke-width':2,
         'vector-effect':'non-scaling-stroke','data-type':'building','data-id':b.id}))r.setAttribute(key,String(value));
       group.append(r);
     }
@@ -117,5 +135,73 @@
       else env.building_count=env.buildings.length;
       S.selected=null;S.inspectorKey=null;editor.rebuildObjectPicker();editor.markDirty();};box.append(remove);
   }
-  window.simulatorBuildings={list,find,at,add,render,renderInspector};
+  window.simulatorBuildings={list,find,at,add,render,renderInspector,canPlace,roadOverlaps};
+})();
+
+'use strict';
+// Move cars, RSUs and manual buildings in local metres; roads remain fixed.
+(() => {
+  const editor=window.simulatorEditor,S=editor.state;
+  const round=value=>Math.round(value*100)/100;
+  const width=()=>S.world.width_m||S.world.extent_m||2000;
+  const height=()=>S.world.height_m||S.world.extent_m||2000;
+  const inside=p=>p.x>=0&&p.x<=width()&&p.y>=0&&p.y<=height();
+  const roadLength=road=>road.shape.slice(1).reduce((n,p,i)=>n+Math.hypot(p[0]-road.shape[i][0],p[1]-road.shape[i][1]),0);
+  const manualBuilding=id=>S.mapMode==='empty'&&window.simulatorBuildings?.find(id)&&S.scenario?.satellite?.environment?.sources?.osm?.provider==='manual-editor-v1';
+  function start(hit,p){
+    if(!hit||S.tool!=='select'||S.routeTargetCar||S.routeTargetGroup)return null;
+    let object=null,original=null;
+    if(hit.type==='car'){object=S.demand.vehicles.find(car=>car.id===hit.id);if(!object)return null;original={route:structuredClone(object.route),depart_pos_m:object.depart_pos_m,arrival_pos_m:object.arrival_pos_m};}
+    else if(hit.type==='rsu'){object=S.world.rsus.find(rsu=>rsu.id===hit.id);if(!object)return null;original={x_m:object.x_m,y_m:object.y_m};}
+    else if(hit.type==='building'){if(!manualBuilding(hit.id))return null;object=window.simulatorBuildings.find(hit.id);original=structuredClone(object.polygon_xy_m);}
+    else return null;
+    return {hit,object,original,origin:p,last:p,moved:false,valid:true,message:'',replay:S.replay};
+  }
+  function restore(drag){
+    const {hit,object,original}=drag;
+    if(hit.type==='car'){object.route=structuredClone(original.route);object.depart_pos_m=original.depart_pos_m;if(original.arrival_pos_m===undefined)delete object.arrival_pos_m;else object.arrival_pos_m=original.arrival_pos_m;}
+    if(hit.type==='rsu'){object.x_m=original.x_m;object.y_m=original.y_m;}
+    if(hit.type==='building')object.polygon_xy_m=structuredClone(original);
+  }
+  function move(drag,p,screenDistance=Infinity){
+    if(!drag)return false;
+    if(screenDistance<4&&!drag.moved)return false;
+    drag.moved=true;drag.last=p;S.replay=null;restore(drag);
+    const {hit,object,original}=drag;
+    let valid=true,message='';
+    if(hit.type==='car'){
+      const nearest=editor.nearestRoad(p),tolerance=Math.max(12,Math.min(25,S.view.w/100));
+      if(!inside(p)||!nearest||nearest.d>tolerance){valid=false;message='Auto musí zostať na ceste.';}
+      else{
+        const length=roadLength(nearest.road),same=original.route[0]?.segment===nearest.road.id;
+        const direction=same?original.route[0].direction:nearest.road.oneway?'forward':original.route[0]?.direction==='reverse'?'reverse':'forward';
+        const at=direction==='reverse'?length-nearest.at:nearest.at;
+        object.route=same?structuredClone(original.route):[{segment:nearest.road.id,direction}];
+        object.depart_pos_m=round(Math.max(0,Math.min(length-20,at)));
+        if(!same)delete object.arrival_pos_m;
+      }
+    }else if(hit.type==='rsu'){
+      const next={x:original.x_m+p.x-drag.origin.x,y:original.y_m+p.y-drag.origin.y};
+      if(!inside(next)){valid=false;message='RSU musí zostať v pracovnom výreze.';}
+      else{object.x_m=round(next.x);object.y_m=round(next.y);}
+    }else if(hit.type==='building'){
+      const dx=p.x-drag.origin.x,dy=p.y-drag.origin.y;
+      const polygon=original.map(([x,y])=>[round(x+dx),round(y+dy)]);
+      if(!polygon.every(([x,y])=>inside({x,y}))){valid=false;message='Budova musí zostať vo výreze.';}
+      else if(!window.simulatorBuildings.canPlace(polygon,hit.id)){valid=false;message='Budova nesmie ležať na ceste.';}
+      else object.polygon_xy_m=polygon;
+    }
+    drag.valid=valid;drag.message=message;S.inspectorKey=null;editor.render();window.simulatorEarthRefreshLayers?.();
+    return true;
+  }
+  function finish(drag,cancel=false){
+    if(!drag)return false;
+    if(cancel||!drag.moved||!drag.valid){restore(drag);S.replay=drag.replay;S.inspectorKey=null;editor.render();window.simulatorEarthRefreshLayers?.();if(drag.moved&&!cancel&&!drag.valid)editor.status(drag.message);return false;}
+    const {hit,object,original}=drag;
+    editor.markDirty();window.simulatorEarthRefreshLayers?.();
+    const newRoad=hit.type==='car'&&original.route[0]?.segment!==object.route[0]?.segment;
+    editor.status(`${{car:'Auto',rsu:'RSU',building:'Budova'}[hit.type]} ${hit.id} presunuté.${newRoad?' Auto má na novej ceste novú trasu; cieľ nastav znova.':''} Zmeny ulož pred ďalším behom.`);
+    return true;
+  }
+  window.simulatorObjectDrag={start,move,finish};
 })();

@@ -2,7 +2,7 @@
 
 The OSM API is queried in bounded tiles because a complete urban cutout can
 exceed its 50,000-node response limit. Successful responses are cached in the
-external workspace, and the editor stores selected WGS84 ways with the scenario.
+project directory, and the editor stores selected WGS84 ways with the scenario.
 """
 
 from __future__ import annotations
@@ -24,6 +24,8 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree as ET
 
+from simulator_platform import ROOT
+
 API = "https://api.openstreetmap.org/api/0.6/map"
 USER_AGENT = "BP-Simulator/1.0 (academic VANET simulation; local OSM road import)"
 DRIVABLE = {"motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link",
@@ -33,7 +35,7 @@ DENIED = {"no", "private", "agricultural", "forestry"}
 MAX_BYTES = 20_000_000
 MAX_TILES = 64
 MAX_ROADS = 30_000
-CACHE_DIR = Path(os.environ.get("BP_SIM_WORKSPACE", Path.home() / "Desktop/BP-Simulator-Workspace")) / "cache/osm"
+CACHE_DIR = Path(os.environ.get("BP_SIM_WORKSPACE", ROOT)) / "cache/osm"
 _LOCK = threading.Lock()
 _TILE_LOCKS = {}
 _RATE_LIMIT_UNTIL = 0.0

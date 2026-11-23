@@ -13,7 +13,6 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path, PurePosixPath
-from typing import Mapping
 
 
 REPOSITORY = "https://github.com/PinKiePieSK/BP-VANET-LEO-simulator.git"
@@ -23,7 +22,8 @@ COPY_ROOTS = {"src", "tools", "viewer", "config"}
 PACKAGE_ONLY = {"scripts/package_simulator.py", "scripts/portable_setup.sh",
                 "scripts/portable_launch.py", "scripts/portable_run.sh",
                 "scripts/portable_update.py", "scripts/portable_update.sh",
-                "scripts/portable_install_shortcut.py", "scripts/portable_verify.py"}
+                "scripts/portable_import.sh", "scripts/portable_install_shortcut.py",
+                "scripts/portable_verify.py"}
 PACKAGE_PREFIXES = ("vendor/", "build/", "release/", "data/derived/",
                    "data/additional-input/", "requirements-")
 
@@ -35,6 +35,10 @@ def is_runtime_source(name: str) -> bool:
     if parts[0] in COPY_ROOTS and len(parts) > 1:
         return "legacy" not in parts and not (parts[0] == "tools" and parts[-1].startswith("test_"))
     return parts[0] == "data" and len(parts) > 2 and parts[1] in {"inputs", "orbits"}
+
+
+def is_saved_scenario(name: str) -> bool:
+    return name.startswith(("config/scenarios/", "data/inputs/user/"))
 
 
 def digest(path: Path) -> str:
@@ -144,48 +148,25 @@ def source_blob(cache: Path, revision: str, name: str) -> tuple[bytes, int] | No
     return git(cache, "show", f"{revision}:{name}"), int(mode, 8)
 
 
-def copy_runtime(current: Path, target: Path, managed: Mapping[str, str]) -> None:
+def copy_runtime(current: Path, target: Path) -> None:
     target.mkdir()
     for item in current.iterdir():
         destination = target / item.name
         if item.name in COPY_ROOTS and item.is_dir():
-            def ignore(directory: str, names: list[str]) -> set[str]:
-                ignored = set(shutil.ignore_patterns("__pycache__", "*.pyc", ".pytest_cache")(
-                    directory, names))
-                if item.name == "config" and Path(directory) == item:
-                    ignored.add("scenarios")
-                return ignored
-
             shutil.copytree(item, destination, symlinks=True,
-                            ignore=ignore)
+                            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".pytest_cache"))
         elif item.name == "data" and item.is_dir():
             destination.mkdir()
             for child in item.iterdir():
                 dst = destination / child.name
                 if child.name in {"inputs", "orbits"} and child.is_dir():
-                    if child.name == "inputs":
-                        def ignore_user(directory: str, names: list[str]) -> set[str]:
-                            return {"user"} if Path(directory) == child and "user" in names else set()
-
-                        shutil.copytree(child, dst, symlinks=True, ignore=ignore_user)
-                    else:
-                        shutil.copytree(child, dst, symlinks=True)
+                    shutil.copytree(child, dst, symlinks=True)
                 else:
                     dst.symlink_to(child.resolve())
         elif item.name == "results":
             (destination / "simulations").mkdir(parents=True)
         else:
             destination.symlink_to(item.resolve())
-    for name in managed:
-        if name.startswith(("config/scenarios/", "data/inputs/user/")):
-            if not is_runtime_source(name):
-                raise RuntimeError(f"Neplatná cesta scenára: {name}")
-            source = current / name
-            if not source.is_file() or source.is_symlink():
-                raise RuntimeError(f"Chýba súbor vydaného scenára: {name}")
-            destination = target / name
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, destination)
 
 
 def apply_blob(target: Path, name: str, blob: tuple[bytes, int] | None) -> None:
@@ -287,9 +268,10 @@ def update(workspace: Path, repository: str = REPOSITORY, *, authenticate: bool 
         if incompatible:
             raise RuntimeError("Zmenili sa súbory základného balíka; stiahni nové úplné vydanie: " +
                                ", ".join(incompatible[:5]))
-        changed = [name for name in paths if is_runtime_source(name)]
+        changed = [name for name in paths if is_runtime_source(name) and not is_saved_scenario(name)]
         current = runtime_path(workspace)
-        managed = dict(state.get("managed", {}))
+        managed = {name: checksum for name, checksum in state.get("managed", {}).items()
+                   if not is_saved_scenario(name)}
         for name, expected in managed.items():
             path = current / name
             if not path.is_file() or path.is_symlink() or digest(path) != expected:
@@ -310,7 +292,7 @@ def update(workspace: Path, repository: str = REPOSITORY, *, authenticate: bool 
             stage = Path(tempfile.mkdtemp(prefix=".pending-", dir=version_dir))
             stage.rmdir()
             try:
-                copy_runtime(current, stage, managed)
+                copy_runtime(current, stage)
                 for name in changed:
                     prior = current / name
                     if name not in managed and prior.exists():

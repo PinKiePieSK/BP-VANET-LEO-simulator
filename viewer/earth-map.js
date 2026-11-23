@@ -192,8 +192,8 @@ function editorFeatures(){
   setSource('editor-route',routeShape.length>1?[line(routeShape.map(([x,y])=>localToGeo(x,y,b)),{id:selected.id})]:[]);
   const store=globalStore(),objects=[];
   if(store&&!s.replay){
-    if(layerOn('layerRsu'))for(const r of store.rsus)objects.push(point([r.longitude_deg,r.latitude_deg],{id:r.id,type:'rsu',active:w.rsus.some(x=>x.id===r.id)}));
-    if(layerOn('layerCar'))for(const c of store.cars)objects.push(point([c.longitude_deg,c.latitude_deg],{id:c.id,type:'car',active:s.demand.vehicles.some(x=>x.id===c.id)}));
+    if(layerOn('layerRsu'))for(const r of store.rsus){const active=w.rsus.find(x=>x.id===r.id);objects.push(point(active?localToGeo(active.x_m,active.y_m,b):[r.longitude_deg,r.latitude_deg],{id:r.id,type:'rsu',active:!!active}));}
+    if(layerOn('layerCar'))for(const c of store.cars){const active=s.demand.vehicles.find(x=>x.id===c.id),pos=active&&editor.carPosition(active);objects.push(point(pos?localToGeo(pos.x,pos.y,b):[c.longitude_deg,c.latitude_deg],{id:c.id,type:'car',active:!!active}));}
   }else{
     if(layerOn('layerRsu'))for(const r of w.rsus)objects.push(point(localToGeo(r.x_m,r.y_m,b),{id:r.id,type:'rsu',active:true}));
     if(layerOn('layerCar'))for(const car of s.demand.vehicles){const pos=editor.replayCar(car.id)||editor.carPosition(car);if(pos)objects.push(point(localToGeo(pos.x,pos.y,b),{id:car.id,type:'car',active:true}));}
@@ -808,7 +808,15 @@ function roadAtScreenPoint(point){
   }
   return best?.id||null;
 }
+let earthDrag=null,suppressDragClickUntil=0;
+function endEarthDrag(cancel=false){
+  if(!earthDrag)return;
+  if(!cancel&&earthDrag.drag.moved)suppressDragClickUntil=performance.now()+250;
+  window.simulatorObjectDrag.finish(earthDrag.drag,cancel);
+  earthDrag=null;map.dragPan.enable();map.dragRotate.enable();
+}
 function mapClick(e){
+  if(performance.now()<suppressDragClickUntil)return;
   if(!editor.state.world)return;
   const picked=geoToLocal(e.lngLat.lng,e.lngLat.lat);
   if(!editor.state.replay&&!editor.state.routeTargetCar&&!editor.state.routeTargetGroup&&
@@ -869,6 +877,26 @@ try{
   new ResizeObserver(()=>{if(ready)map.resize();}).observe(earth);
   map.on('error',e=>{if(!ready){note.textContent='Reálna mapa sa nenačítala; zostáva lokálny glóbus. '+(e.error?.message||'');}});
   map.on('click',mapClick);
+  map.on('mousedown',e=>{
+    if(e.originalEvent?.button!==0||editor.state.tool!=='select'||!editor.state.world)return;
+    const p=geoToLocal(e.lngLat.lng,e.lngLat.lat);
+    if(p.x<0||p.x>extent()||p.y<0||p.y>height())return;
+    const feature=map.queryRenderedFeatures(e.point,{layers:['editor-objects-circle']})[0];
+    let hit=feature&&feature.properties.active?{type:feature.properties.type,id:feature.properties.id}:null;
+    if(!hit){const building=map.queryRenderedFeatures(e.point,{layers:['editor-buildings-fill']})[0];if(building)hit={type:'building',id:building.properties.id};}
+    if(e.originalEvent?.shiftKey&&hit?.type==='car')return;
+    const drag=window.simulatorObjectDrag?.start(hit,p);if(!drag)return;
+    earthDrag={drag,start:e.point};map.dragPan.disable();map.dragRotate.disable();
+    editor.state.selected=hit;editor.state.inspectorKey=null;editor.render();
+  });
+  map.on('mousemove',e=>{
+    if(!earthDrag)return;
+    const p=geoToLocal(e.lngLat.lng,e.lngLat.lat);
+    window.simulatorObjectDrag.move(earthDrag.drag,p,Math.hypot(e.point.x-earthDrag.start.x,e.point.y-earthDrag.start.y));
+  });
+  map.on('mouseup',()=>endEarthDrag());
+  window.addEventListener('mouseup',e=>{if(earthDrag&&!earth.contains(e.target))endEarthDrag(true);});
+  window.addEventListener('keydown',e=>{if(e.key==='Escape')endEarthDrag(true);});
   map.on('dblclick',e=>{if(editor.state.tool==='road'){e.preventDefault();if(editor.state.draft.length>2){editor.state.draft.pop();editor.finishRoad();}}});
   map.on('zoomend',render);
   document.getElementById('earthWhole').onclick=()=>map.flyTo({center:[editor.state.world.georeference.longitude_deg,editor.state.world.georeference.latitude_deg],zoom:wholeEarthZoom(),pitch:0,bearing:0,duration:700});

@@ -14,6 +14,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from portable_update import REPOSITORY, adopt_package, copy_runtime, digest, runtime_path, update
 import portable_launch
+import package_simulator
 
 
 class PortableUpdateTest(unittest.TestCase):
@@ -53,6 +54,9 @@ class PortableUpdateTest(unittest.TestCase):
         (self.runtime / "vendor/pinned.txt").write_text("dependency\n")
         self._git("add", ".", cwd=self.source)
         self._git("commit", "-m", "base", cwd=self.source)
+        (self.source / ".gitignore").write_text("/config/scenarios/\n/data/inputs/user/\n")
+        self._git("add", ".gitignore", cwd=self.source)
+        self._git("commit", "-m", "ignore local scenarios", cwd=self.source)
         self.base = self._git("rev-parse", "HEAD", cwd=self.source).strip()
         self._git("clone", "--bare", str(self.source), str(self.remote), cwd=self.root)
         self._git("remote", "add", "origin", str(self.remote), cwd=self.source)
@@ -81,12 +85,52 @@ class PortableUpdateTest(unittest.TestCase):
         self._git("push", "origin", "main", cwd=self.source)
         return self._git("rev-parse", "HEAD", cwd=self.source).strip()
 
-    def test_delta_keeps_old_runs_without_copying_saved_scenarios(self) -> None:
+    def test_package_includes_only_four_bundled_scenarios(self) -> None:
+        with patch.object(package_simulator, "ROOT", self.source):
+            scenarios = self.source / "config/scenarios"
+            data = self.source / "data/inputs/user"
+            for name in package_simulator.PINNED_SCENARIOS:
+                (scenarios / f"{name}.json").write_text("{}\n")
+                (data / name).mkdir()
+            (scenarios / "my-trip.json").write_text("{}\n")
+            (data / "my-trip").mkdir()
+            for directory in (scenarios, data):
+                entries = [item.name for item in directory.iterdir()]
+                included = set(entries) - package_simulator.ignore(str(directory), entries)
+                expected = ({name + ".json" for name in package_simulator.PINNED_SCENARIOS}
+                            if directory == scenarios else package_simulator.PINNED_SCENARIOS)
+                self.assertEqual(included, expected)
+
+    def test_edited_bundled_scenario_remains_local_after_update(self) -> None:
+        scenario = self.runtime / "config/scenarios/bundled.json"
+        data = self.runtime / "data/inputs/user/bundled/world.json"
+        scenario.write_text('{"edited": true}\n')
+        data.write_text('{"edited": true}\n')
+        self.commit({"tools/simulator_server.py": "print('new server')\n",
+                     "config/scenarios/bundled.json": '{"published": true}\n',
+                     "data/inputs/user/bundled/world.json": '{"published": true}\n'})
+        self.assertEqual(update(self.workspace, str(self.remote), authenticate=False,
+                                validate=True)["status"], "UPDATED")
+        active = runtime_path(self.workspace)
+        self.assertEqual((active / "config/scenarios/bundled.json").read_text(),
+                         '{"edited": true}\n')
+        self.assertEqual((active / "data/inputs/user/bundled/world.json").read_text(),
+                         '{"edited": true}\n')
+        state = json.loads((self.workspace / "UPDATE-STATE.json").read_text())
+        self.assertNotIn("config/scenarios/bundled.json", state["managed"])
+        self.assertNotIn("data/inputs/user/bundled/world.json", state["managed"])
+
+    def test_delta_preserves_saved_scenarios_without_publishing_them(self) -> None:
         saved = self.runtime / "config/scenarios/my-trip.json"
         saved.write_text('{"saved": true}\n')
         saved_data = self.runtime / "data/inputs/user/my-trip/world.json"
         saved_data.parent.mkdir()
         saved_data.write_text('{"roads": []}\n')
+        source_saved = self.source / "config/scenarios/my-trip.json"
+        source_saved.write_text(saved.read_text())
+        source_saved_data = self.source / "data/inputs/user/my-trip/world.json"
+        source_saved_data.parent.mkdir()
+        source_saved_data.write_text(saved_data.read_text())
         target = self.commit({"tools/simulator_server.py": "print('new server')\n",
                               "viewer/simulator.js": "const version = 'new';\n",
                               "config/added.json": "{\"new\": true}\n",
@@ -95,14 +139,18 @@ class PortableUpdateTest(unittest.TestCase):
         self.assertEqual(result["status"], "UPDATED")
         self.assertEqual(result["changed_files"], 3)
         self.assertEqual(result["revision"], target)
+        tracked = self._git("ls-tree", "-r", "--name-only", target, cwd=self.source)
+        self.assertNotIn("config/scenarios/my-trip.json", tracked)
+        self.assertNotIn("data/inputs/user/my-trip/world.json", tracked)
         active = runtime_path(self.workspace)
         self.assertEqual((active / "tools/simulator_server.py").read_text(), "print('new server')\n")
         self.assertEqual((self.runtime / "tools/simulator_server.py").read_text(), "print('old server')\n")
         self.assertEqual((active / "data/inputs/user/bundled/world.json").read_text(),
                          '{"bundled": true}\n')
         self.assertTrue((active / "config/scenarios/bundled.json").is_file())
-        self.assertFalse((active / "config/scenarios/my-trip.json").exists())
-        self.assertFalse((active / "data/inputs/user/my-trip").exists())
+        self.assertEqual((active / "config/scenarios/my-trip.json").read_text(), saved.read_text())
+        self.assertEqual((active / "data/inputs/user/my-trip/world.json").read_text(),
+                         saved_data.read_text())
         self.assertTrue(saved.is_file())
         self.assertTrue(saved_data.is_file())
         self.assertFalse((active / "results/simulations/old-run").exists())
@@ -123,7 +171,8 @@ class PortableUpdateTest(unittest.TestCase):
         self.assertEqual(runtime_path(self.workspace, "old-run"), self.runtime)
         self.assertEqual(runtime_path(self.workspace, "second-run"), active)
         self.assertFalse((runtime_path(self.workspace) / "results/simulations/second-run").exists())
-        self.assertFalse((runtime_path(self.workspace) / "config/scenarios/another-trip.json").exists())
+        self.assertTrue((runtime_path(self.workspace) / "config/scenarios/another-trip.json").is_file())
+        self.assertTrue((runtime_path(self.workspace) / "config/scenarios/my-trip.json").is_file())
         self.assertEqual(update(self.workspace, str(self.remote), authenticate=False,
                                 validate=False)["status"], "CURRENT")
 
@@ -152,6 +201,7 @@ class PortableUpdateTest(unittest.TestCase):
         package.mkdir()
         scripts = Path(__file__).resolve().parents[1] / "scripts"
         shutil.copy2(scripts / "portable_run.sh", package / "run.sh")
+        shutil.copy2(scripts / "portable_import.sh", package / "import.sh")
         shutil.copy2(scripts / "portable_update.py", package / "update.py")
         (package / "PACKAGE-MANIFEST.json").write_text("{}\n")
         (self.workspace / "PACKAGE-ID").write_text(digest(package / "PACKAGE-MANIFEST.json"))
@@ -171,6 +221,12 @@ class PortableUpdateTest(unittest.TestCase):
                                    env=env, capture_output=True, text=True)
         self.assertNotEqual(duplicate.returncode, 0)
         self.assertIn("už patrí staršiemu behu", duplicate.stderr)
+        imported = self.root / "imported.json"
+        imported.write_text('{"local": true}\n')
+        subprocess.run(["bash", str(package / "import.sh"), str(imported)],
+                       env=env, capture_output=True, text=True, check=True)
+        self.assertTrue((active / "data/inputs/user/imported.json").is_file())
+        self.assertFalse((self.runtime / "data/inputs/user/imported.json").exists())
 
     def test_complete_package_upgrade_preserves_previous_runs(self) -> None:
         package = self.root / "new-package"
@@ -183,7 +239,7 @@ class PortableUpdateTest(unittest.TestCase):
         (package / "UPDATE-BASE.json").write_text(json.dumps(base))
         target = self.workspace / ".versions" / new_revision
         target.parent.mkdir()
-        copy_runtime(self.runtime, target, self.managed)
+        copy_runtime(self.runtime, target)
         outcome = adopt_package(self.workspace, package, target)
         self.assertEqual(outcome["status"], "READY")
         self.assertEqual(runtime_path(self.workspace), target)
@@ -206,7 +262,7 @@ class PortableUpdateTest(unittest.TestCase):
         (package / "UPDATE-BASE.json").write_text(json.dumps(base))
         target = self.workspace / ".versions" / new_revision
         target.parent.mkdir()
-        copy_runtime(self.runtime, target, self.managed)
+        copy_runtime(self.runtime, target)
         adopt_package(self.workspace, package, target)
         self.assertEqual(runtime_path(self.workspace, "old-run"), self.runtime)
         self.assertEqual(runtime_path(self.workspace), target)

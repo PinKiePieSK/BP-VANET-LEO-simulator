@@ -21,7 +21,7 @@ from astropy.coordinates import CartesianRepresentation, ITRS, TEME
 from astropy.time import Time
 from sgp4.api import SatrecArray
 
-from simulator_platform import ROOT, CHECKOUT, sha, put_exact, ut_site
+from simulator_platform import ROOT, CHECKOUT, sha, put_exact, ut_site, native_library_environment
 from simulator_engine_controls import effective as engine_controls
 from simulator_satellite_inputs import generate
 from simulator_build import compile_packet_engine
@@ -311,7 +311,8 @@ def run(scenario: dict, output: Path, ground_config: dict, orbit_reference: dict
             args.append(f'--{key}={int(value) if isinstance(value, bool) else value}')
         if obstruction.is_file():
             args.append(f'--osm_buildings={alias / "osm-buildings.csv"}')
-        env = dict(os.environ, NS_LOG='', **policy_environment(scenario['node_policy']))
+        env = native_library_environment()
+        env.update(NS_LOG='', **policy_environment(scenario['node_policy']))
         timeout = max(180, min(21600, 60 + 2 * len(world['vehicles']) *
                                 scenario['sample_count'] / 10))
         with (folder / 'run.log').open('w') as stdout,\

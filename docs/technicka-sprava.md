@@ -1,6 +1,6 @@
 # Technická správa k simulátoru VANET/LEO
 
-**Stav modelu:** 18. 11. 2026. **Runtime:** SUMO, Vanetza v26.06, ns-3.38 a SNS-3 3.38. Táto správa opisuje aktuálny pracovný simulátor a prenosný balík, nie výsledky budúceho experimentu.
+**Stav modelu:** 23. 11. 2026. **Runtime:** SUMO, Vanetza v26.06, ns-3.38 a SNS-3 3.38. Táto správa opisuje aktuálny pracovný simulátor v jednom projektovom priečinku, nie výsledky budúceho experimentu.
 
 ## 1. Účel a rozsah
 
@@ -10,19 +10,19 @@ Satelitná vetva je generický DVB model SNS-3 s orbitálnymi a terminálovými 
 
 ## 2. Inštalácia, spustenie a súbory scenára
 
-Na Ubuntu 24.04 x86_64 rozbaliť `BP-Simulator.zip`, v rozbalenom priečinku spustiť `bash setup.sh` a potom použiť vytvorenú ikonu. Inštalátor overí pripnutý slovenský OSM súbor, nainštaluje závislosti, zostaví Vanetza a ns-3/SNS-3, vykoná krátky pozemný beh. `BP-Simulator-Workspace/runtime` obsahuje prvý spustiteľný runtime a jeho výsledky v `results/simulations`. Po aktualizácii vzniknú ďalšie runtime v `BP-Simulator-Workspace/.versions/<commit>`, každý s vlastnými výsledkami. Zdrojový balík sa nemení pri ukladaní scenárov.
+Na Ubuntu 24.04 x86_64 klonovať GitHub projekt do `BP-Simulator/` a spustiť `python3 scripts/setup_single_folder.py`. Inštalátor overí pripnutý slovenský OSM súbor, pripraví veľké závislosti z vydania, zostaví Vanetza a ns-3/SNS-3, vykoná preflight a vytvorí ikonu. Aplikácia, vstupy a výsledky v `results/simulations/` zostávajú v tom istom projektovom priečinku. Git sleduje kód a dodané ukážky; lokálne zostavené závislosti a osobné dáta ignoruje.
 
 Pripravené scenáre: `realna-d1-pozemna`, `realna-d1-satelit`, `navrh-koridor-pozemna`, `navrh-koridor-satelit`. Dvojice používajú rovnakú dopravu a rozdielnu komunikačnú vetvu. Dopravný dopyt je syntetický. Pri porovnaní treba zaznamenať verziu balíka, vstupný JSON, seed, číslo ns-3 behu a ID výsledku.
 
-Terminálové rozhranie prenosného balíka:
+Terminálové rozhranie z koreňa projektu:
 
 ```bash
-bash run.sh preflight config/simulator-iridium.json
-bash run.sh run config/simulator-iridium.json moje-meranie-1
-bash run.sh verify moje-meranie-1
+.venv/bin/python tools/simulator_cli.py preflight config/simulator-iridium.json
+.venv/bin/python tools/simulator_cli.py run config/simulator-iridium.json results/simulations/moje-meranie-1
+.venv/bin/python tools/simulator_cli.py verify results/simulations/moje-meranie-1
 ```
 
-Každý beh potrebuje nové ID. Po schválenom commite treba zavrieť pôvodné okno a spustiť `bash update.sh` alebo ikonu **BP Simulátor – aktualizovať**. Aktualizátor stiahne rozdiel Git commitov, pripraví nový runtime a overí jeho preflight pred prepnutím. Pri prvom použití je nutné prihlásenie do GitHubu účtom s prístupom k súkromnému repozitáru. `bash run.sh verify ID_BEHU` vyberie kód verzie, v ktorej beh vznikol; `bash run.sh replay ID_BEHU` otvorí jeho prehratie. Staré výsledky sa neprepisujú. Pri zmenách pripnutých závislostí alebo inštalačných skriptov sa vydá nový celý ZIP.
+Každý beh potrebuje nové ID. Pri aktualizácii treba zavrieť okno, v tom istom priečinku vykonať `git pull --ff-only` a znovu spustiť `python3 scripts/setup_single_folder.py`. Staré výsledky sa neprepisujú. Manifest zaznamenáva hashe použitého zdroja, preto starší výsledok nemusí prejsť overením zmeneným kódom; pri vedeckej práci treba zachovať pôvodný commit.
 
 ## 3. Ovládanie editora
 
@@ -113,7 +113,7 @@ Keď je integrovaný beh bez režimu DENM, RSU môže z **prvého skutočne dek�
 | **GRA1** | `GRA1` (4 B), verzia (1 B), ID reportu (8 B), SHA-256 celého ICB1 (32 B), rezervovaný bajt. Celkom 46 B. |
 | **I2V1** | `I2V1` (4 B), verzia (1 B), ID reportu (8 B), station ID (4 B), SHA-256 ICB1 (32 B), rezervovaný bajt. Celkom 50 B. |
 
-Zoznam v replay ukazuje rozličné **etapy** tej istej správy: vytvorenie UPER, odoslanie GN/BTP, PHY prenos, príjem, dekódovanie, IP/UDP spoj, prípadne bránu a vzdialený pozemný príjem. Počet vytvorených správ sa nesmie vydávať za počet doručených správ. `ICB1`, `GRA1` a `I2V1` sú definované v `engine/src/vanet-leo-network.cc`; CAM a DENM v oboch aktuálnych C++ enginoch.
+Zoznam v replay ukazuje rozličné **etapy** tej istej správy: vytvorenie UPER, odoslanie GN/BTP, PHY prenos, príjem, dekódovanie, IP/UDP spoj, prípadne bránu a vzdialený pozemný príjem. Počet vytvorených správ sa nesmie vydávať za počet doručených správ. `ICB1`, `GRA1` a `I2V1` sú definované v `src/vanet-leo-network.cc`; CAM a DENM v oboch aktuálnych C++ enginoch.
 
 ## 7. Výstupy a ich čítanie
 
@@ -129,4 +129,4 @@ OSM nemusí obsahovať kompletnú dopravnú topológiu, pruhové spojenia ani v�
 
 ## 9. Orientácia v implementácii
 
-`engine/tools/simulator_server.py` poskytuje editorové API a replay. `engine/tools/simulator_cli.py` validuje vstupy, spúšťa beh a zapisuje finálny manifest. `engine/tools/simulator_ground_runner.py` a `engine/tools/simulator_satellite_runner.py` pripravujú SUMO výstup a argumenty natívnych enginov. `engine/src/vanet-ground-network.cc` a `engine/src/vanet-leo-network.cc` obsahujú vlastnú aplikačnú logiku a sieťovú konfiguráciu. `engine/tools/simulator_ground_verifier.py` a `engine/tools/simulator_satellite_verifier.py` overujú raw stopy. `engine/viewer/simulator.html`, `simulator.js`, `technical-parameters.js` a `packet-inspector.js` tvoria editor, technickú stránku a prehrávač. `engine/vendor/ns-3.38-ocb-eval` je jediný aktívny ns-3/SNS-3 runtime.
+`tools/simulator_server.py` poskytuje editorové API a replay. `tools/simulator_cli.py` validuje vstupy, spúšťa beh a zapisuje finálny manifest. `tools/simulator_ground_runner.py` a `tools/simulator_satellite_runner.py` pripravujú SUMO výstup a argumenty natívnych enginov. `src/vanet-ground-network.cc` a `src/vanet-leo-network.cc` obsahujú vlastnú aplikačnú logiku a sieťovú konfiguráciu. `tools/simulator_ground_verifier.py` a `tools/simulator_satellite_verifier.py` overujú raw stopy. `viewer/simulator.html`, `simulator.js`, `technical-parameters.js` a `packet-inspector.js` tvoria editor, technickú stránku a prehrávač. `vendor/ns-3.38-ocb-eval` je jediný aktívny ns-3/SNS-3 runtime. `scripts/launch_local.py` otvára tento projekt z ikony na ploche.

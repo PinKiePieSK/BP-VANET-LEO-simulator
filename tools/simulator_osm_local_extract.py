@@ -1,4 +1,4 @@
-"""Read bounded Slovak OSM cutouts from the pinned external Geofabrik extract."""
+"""Read bounded Slovak OSM cutouts from the pinned local Geofabrik extract."""
 from __future__ import annotations
 
 import hashlib
@@ -11,7 +11,9 @@ import threading
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
-WORKSPACE = Path(os.environ.get("BP_SIM_WORKSPACE", Path.home() / "Desktop/BP-Simulator-Workspace"))
+from simulator_platform import ROOT
+
+WORKSPACE = Path(os.environ.get("BP_SIM_WORKSPACE", ROOT))
 DATA_DIR = WORKSPACE / "imports/osm"
 CACHE_DIR = WORKSPACE / "cache/osm"
 PBF = DATA_DIR / "slovakia-261031.osm.pbf"

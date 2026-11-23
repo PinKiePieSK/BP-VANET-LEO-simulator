@@ -18,7 +18,7 @@ from xml.etree import ElementTree as ET
 
 from simulator_sumo import run as run_sumo, validate as validate_world
 from simulator_mobility_export import prepare
-from simulator_platform import VANETZA, VANETZA_BUILD, OPENSSL, CHECKOUT, ROOT
+from simulator_platform import VANETZA, VANETZA_BUILD, OPENSSL, CHECKOUT, ROOT, repair_generated_ns3_headers, native_library_environment
 from simulator_node_policy import environment as node_policy_environment
 from simulator_rsu_radio import write as write_rsu_radio
 from simulator_car_radio import write as write_car_radio
@@ -47,6 +47,7 @@ def root_file(name: str) -> Path:
 
 
 def compile_source(out: Path) -> Path:
+    repair_generated_ns3_headers()
     libs = sorted((VANETZA_BUILD / "lib/static").glob("*.a"))
     if not libs:
         raise RuntimeError("pinned Vanetza static libraries absent")
@@ -288,7 +289,7 @@ def run(config_path: Path, out: Path) -> dict:
             if "obstructions" in case:
                 command.append(f"--osm_buildings={short / 'osm-buildings.csv'}")
             with (folder / "run.log").open("w") as log:
-                child_env=os.environ.copy()
+                child_env=native_library_environment()
                 child_env.update(node_policy_environment(config.get('node_policy')))
                 subprocess.run(command, cwd=ROOT, env=child_env, stdout=log, stderr=subprocess.STDOUT, check=True)
         cases[name] = {"config": case, "demand_kind": demand["kind"],

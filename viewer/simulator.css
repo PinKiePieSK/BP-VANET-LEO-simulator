@@ -156,3 +156,5 @@ body{display:block;height:auto}
 .car-inspector-page .car-fixed-input strong{color:#e5eee8}
 .building-points{max-height:235px;overflow:auto;overscroll-behavior:contain;border:1px solid #365158;border-radius:8px;padding:8px;margin-top:10px}
 .building-points h4{margin:10px 0 4px}
+
+#groundMap .entity-hit{cursor:grab}#groundMap .entity-hit:active{cursor:grabbing}#mapBuildings .draggable-building{cursor:grab}

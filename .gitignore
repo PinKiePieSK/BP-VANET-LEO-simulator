@@ -1,19 +1,36 @@
-.venv*/
+build/
 __pycache__/
 *.pyc
 .pytest_cache/
-build/
 vendor/
-release/
-results/
+.venv/
+.venv*/
+local-python/
 archive/
+results/
+release/
 data/derived/
-data/additional-input/
+imports/
+cache/
+logs/
+browser-profiles/
+.launcher.lock
 *.log
+.cursor/
+.github/copilot-instructions.md
+build-sns3.log
+configure-sns3.log
+
+# Shared SNS data retained independently of the retired runtime.
+data/additional-input/
+
+# Saved editor scenarios are local data.
+/config/scenarios/
+/data/inputs/user/
+
+# Local project instructions do not belong in the release repository.
 AGENTS.md
 CLAUDE.md
 GEMINI.md
 SKILL.md
 MEMORY.md
-.cursor/
-.github/copilot-instructions.md
