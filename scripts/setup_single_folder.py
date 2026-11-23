@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shlex
 import shutil
 import stat
 import subprocess
@@ -49,6 +50,23 @@ def dependencies_ready() -> bool:
         "build/openssl-dev-local/usr/include/openssl/ssl.h",
     )) and (ROOT / "release/python-wheels").is_dir() and \
         (ROOT / "release/osm/slovakia-261031.osm.pbf").is_file()
+
+
+def github_cli() -> str | None:
+    executable = shutil.which("gh")
+    if executable:
+        return executable
+    local = ROOT / "local-bin/gh"
+    return str(local) if local.is_file() and os.access(local, os.X_OK) else None
+
+
+def configure_git_auth() -> None:
+    if not (ROOT / ".git").exists():
+        return
+    executable = github_cli()
+    if executable:
+        helper = "!" + shlex.quote(executable) + " auth git-credential"
+        run("git", "config", "--local", "credential.https://github.com.helper", helper)
 
 
 def extract_dependencies(archive: Path) -> None:
@@ -102,11 +120,12 @@ def ensure_dependencies() -> None:
             raise RuntimeError("Local dependency ZIP has a different SHA-256")
         extract_dependencies(archive)
         return
-    if not shutil.which("gh"):
+    executable = github_cli()
+    if not executable:
         raise RuntimeError("Install GitHub CLI (gh) and log in to access the private dependency release")
     with tempfile.TemporaryDirectory(prefix="bp-download-") as directory:
         folder = Path(directory)
-        run("gh", "release", "download", DEPENDENCY_RELEASE, "--repo", REPOSITORY,
+        run(executable, "release", "download", DEPENDENCY_RELEASE, "--repo", REPOSITORY,
             "--pattern", "BP-Simulator.zip", "--dir", str(folder))
         archive = folder / "BP-Simulator.zip"
         if sha256(archive) != DEPENDENCY_SHA256:
@@ -206,6 +225,7 @@ def main() -> None:
     missing = [name for name in required if not shutil.which(name)]
     if missing:
         raise RuntimeError("Install system build tools before setup: " + ", ".join(missing))
+    configure_git_auth()
     ensure_dependencies()
     ensure_osm()
     ensure_python()

@@ -9,12 +9,12 @@ Zdrojový kód na GitHube a lokálne spúšťaný kód sú ten istý Git projekt
 Na čistom Ubuntu 24.04 x86_64 si priprav systémové nástroje uvedené v [návode](docs/instalacia-a-pouzitie.md), prihlás GitHub CLI k súkromnému repozitáru a spusti:
 
 ```bash
-git clone https://github.com/PinKiePieSK/BP-VANET-LEO-simulator.git BP-Simulator
+gh repo clone PinKiePieSK/BP-VANET-LEO-simulator BP-Simulator
 cd BP-Simulator
 python3 scripts/setup_single_folder.py
 ```
 
-Inštalátor stiahne pripnuté veľké závislosti z existujúceho vydania, overí ich SHA-256 a pripraví ich priamo tu. Zdrojové súbory berie z klonovaného commitu; nevytvára druhý pracovný runtime. Na ploche vytvorí jedinú ikonu. Nový commit na GitHube nemení otvorenú lokálnu aplikáciu automaticky; aktualizácia kódu v tomto jednom priečinku je `git pull --ff-only` pri zatvorenom simulátore, potom `python3 scripts/setup_single_folder.py`.
+Inštalátor stiahne pripnuté veľké závislosti z existujúceho vydania, overí ich SHA-256 a pripraví ich priamo tu. Zdrojové súbory berie z klonovaného commitu; nevytvára druhý pracovný runtime. Na ploche vytvorí jedinú ikonu. Po zatvorení simulátora spusti `python3 scripts/update_local.py` alebo v ponuke ikony na ploche zvoľ „Aktualizovať simulátor“.
 
 ## Spustenie a overenie
 

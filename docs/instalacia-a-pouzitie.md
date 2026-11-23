@@ -9,7 +9,8 @@ Podporovaná čistá inštalácia používa Ubuntu 24.04 x86_64 a Python 3.12. P
 ```bash
 sudo apt-get update
 sudo apt-get install git gh build-essential cmake ninja-build pkg-config python3.12 python3.12-venv python3.12-dev sumo sumo-tools libxml2-dev libgsl-dev libsqlite3-dev libboost-all-dev libssl-dev zstd osmium-tool firefox
-git clone https://github.com/PinKiePieSK/BP-VANET-LEO-simulator.git BP-Simulator
+gh auth login
+gh repo clone PinKiePieSK/BP-VANET-LEO-simulator BP-Simulator
 cd BP-Simulator
 python3 scripts/setup_single_folder.py
 ```
@@ -33,4 +34,4 @@ Príkazy z koreňa projektu:
 
 ## Aktualizácia bez druhého runtime
 
-Zavri okno simulátora, v projektovom priečinku spusti `git pull --ff-only` a potom `python3 scripts/setup_single_folder.py`. Kód sa zmení v tom istom adresári. Skript zachová `results/` a osobné scenáre. Starší `run-manifest.json` obsahuje hashe pôvodného zdroja a nemusí prejsť overením novým kódom. GitHub vydanie `v2026-11-18.2` je len pripnutý zdroj veľkých závislostí, nie ďalší pracovný runtime.
+Zavri okno simulátora a v projektovom priečinku spusti `python3 scripts/update_local.py`, alebo v ponuke ikony na ploche zvoľ „Aktualizovať simulátor“. Aktualizátor preverí čistotu sledovaných súborov, stiahne novú vetvu `main`, vykoná iba pokračujúci posun, znovu pripraví projekt a overí štart servera. Pri neúspešnej príprave vráti zdrojový kód na pôvodný commit. `results/` a osobné scenáre zostávajú v tom istom priečinku. Starší `run-manifest.json` obsahuje hashe pôvodného zdroja a nemusí prejsť overením novým kódom. GitHub vydanie `v2026-11-18.2` je len pripnutý zdroj veľkých závislostí, nie ďalší pracovný runtime.

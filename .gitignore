@@ -6,6 +6,7 @@ vendor/
 .venv/
 .venv*/
 local-python/
+local-bin/
 archive/
 results/
 release/

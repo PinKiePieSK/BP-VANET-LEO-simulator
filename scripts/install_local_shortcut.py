@@ -37,7 +37,10 @@ def install() -> Path:
         "Comment=Spustiť simulátor z jediného projektového priečinka\n"
         f"Exec=python3 {quoted(ROOT / 'scripts/launch_local.py')}\n"
         f"Path={ROOT}\nIcon=bp-simulator\nTerminal=false\n"
-        "StartupNotify=true\nCategories=Education;Science;\n")
+        "StartupNotify=true\nCategories=Education;Science;\nActions=Update;\n\n"
+        "[Desktop Action Update]\nName=Aktualizovať simulátor\n"
+        f"Exec=python3 {quoted(ROOT / 'scripts/update_local.py')}\n"
+        f"Path={ROOT}\nTerminal=true\n")
     target.chmod(0o755)
     gio = shutil.which("gio")
     if gio:
