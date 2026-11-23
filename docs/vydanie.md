@@ -1,6 +1,6 @@
 # Distribúcia simulátora
 
-Aplikačný kód sa distribuuje cez Git repozitár. GitHub Release poskytuje archív zdrojov runtime a vstupných dát potrebných na zostavenie: ns-3.38/SNS-3 3.38, Vanetza, Python wheels a mapový výrez. Inštalátor `scripts/setup_single_folder.py` určuje značku vydania, názov archívu a jeho SHA-256.
+Aplikačný kód sa distribuuje cez Git repozitár. GitHub Release poskytuje archív zdrojov runtime a vstupných dát potrebných na zostavenie: ns-3.38/SNS-3 3.38, Vanetza, Python wheels a mapový výrez. V tom istom vydaní je aj archív Python 3.12.14 pôvodom z projektu python-build-standalone. Inštalátor `scripts/setup_single_folder.py` určuje značku vydania, názvy oboch archívov a ich SHA-256; chýbajúce balíky Ubuntu inštaluje cez `apt`.
 
 ## Podporovaná verzia
 

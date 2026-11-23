@@ -5,10 +5,12 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import platform
 import shutil
 import stat
 import subprocess
 import sys
+import tarfile
 import tempfile
 import zipfile
 from datetime import datetime, timezone
@@ -19,9 +21,17 @@ from urllib.request import urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
 REPOSITORY = "PinKiePieSK/BP-VANET-LEO-simulator"
-DEPENDENCY_RELEASE = "v2026-11-23.3"
+DEPENDENCY_RELEASE = "v2026-11-23.4"
 DEPENDENCY_ASSET = "BP-VANET-LEO-dependencies.zip"
 DEPENDENCY_SHA256 = "c848194622f6afb6ca20fc159ad3a3a34368f4dd0b8c931ff0b2ab23680a646d"
+PYTHON_VERSION = "3.12.14"
+PYTHON_ASSET = "cpython-3.12.14+20260825-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+PYTHON_SHA256 = "7ce4a71285d913955a76053cc7605ea96da8ecada54dba9cf395245961816421"
+SYSTEM_PACKAGES = (
+    "git", "build-essential", "gcc-13", "g++-13", "cmake", "ninja-build", "pkg-config", "sumo", "sumo-tools",
+    "libxml2-dev", "libgsl-dev", "libsqlite3-dev", "libboost-date-time-dev", "libssl-dev",
+    "libcrypt1", "ca-certificates", "zstd", "osmium-tool",
+)
 PBF_SHA256 = "4af3affa32fdc294ade673b409a0dc7f5c6c908875776ff06530d7bd923a9185"
 ARCHIVE_ROOTS = {
     "bp-vanet-leo-dependencies/vendor/": "vendor/",
@@ -35,6 +45,42 @@ ARCHIVE_ROOTS = {
 
 def run(*command: str, cwd: Path = ROOT) -> None:
     subprocess.run(command, cwd=cwd, check=True)
+
+
+def ensure_supported_host() -> None:
+    if platform.system() != "Linux" or platform.machine() != "x86_64":
+        raise RuntimeError("This installer supports Ubuntu 24.04/26.04 on x86_64")
+    release = Path("/etc/os-release").read_text()
+    if 'ID=ubuntu\n' not in release or not any(
+        f'VERSION_ID="{version}"' in release for version in ("24.04", "26.04")
+    ):
+        raise RuntimeError("This installer supports Ubuntu 24.04/26.04 on x86_64")
+    if sys.version_info < (3, 12):
+        raise RuntimeError("Run setup with the system Python 3.12 or newer")
+
+
+def installed_package(name: str) -> bool:
+    result = subprocess.run(("dpkg-query", "-W", "-f=${Status}", name),
+                            text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    return result.returncode == 0 and result.stdout.strip() == "install ok installed"
+
+
+def ensure_system_packages() -> None:
+    packages = (*SYSTEM_PACKAGES,)
+    if not any(shutil.which(browser) for browser in ("firefox", "chromium", "chromium-browser")):
+        packages += ("firefox",)
+    missing = [package for package in packages if not installed_package(package)]
+    if missing:
+        prefix = () if os.geteuid() == 0 else ("sudo",)
+        if prefix and not shutil.which("sudo"):
+            raise RuntimeError("Install the missing system packages with apt: " + ", ".join(missing))
+        print("Installing system packages: " + ", ".join(missing), flush=True)
+        run(*prefix, "apt-get", "update")
+        run(*prefix, "apt-get", "install", "-y", *missing)
+    commands = ("git", "g++-13", "cmake", "ninja", "sumo", "netconvert", "pkg-config", "zstd", "osmium")
+    unavailable = [name for name in commands if not shutil.which(name)]
+    if unavailable:
+        raise RuntimeError("Missing system commands after apt installation: " + ", ".join(unavailable))
 
 
 def sha256(path: Path) -> str:
@@ -98,7 +144,36 @@ def download_dependency_archive(url: str, destination: Path) -> None:
         with urlopen(url, timeout=60) as response, destination.open("wb") as output:
             shutil.copyfileobj(response, output, length=1024 * 1024)
     except (OSError, URLError) as error:
-        raise RuntimeError(f"Dependency download failed: {error}") from error
+        raise RuntimeError(f"Archive download failed: {error}") from error
+
+
+def ensure_local_python() -> Path:
+    python = ROOT / "local-python" / f"python-{PYTHON_VERSION}" / "bin/python3.12"
+    if python.is_file():
+        return python
+    destination = python.parent.parent
+    if destination.exists():
+        raise RuntimeError(f"Incomplete local Python installation: {destination}")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix=".stage-", dir=destination.parent) as directory:
+        stage = Path(directory)
+        local_archive = os.environ.get("BP_SIM_PYTHON_ARCHIVE")
+        if local_archive:
+            archive = Path(local_archive).expanduser().resolve()
+        else:
+            archive = stage / PYTHON_ASSET
+            url = (f"https://github.com/{REPOSITORY}/releases/download/"
+                   f"{DEPENDENCY_RELEASE}/{PYTHON_ASSET.replace('+', '%2B')}")
+            download_dependency_archive(url, archive)
+        if sha256(archive) != PYTHON_SHA256:
+            raise RuntimeError("Downloaded Python archive has a different SHA-256")
+        with tarfile.open(archive, "r:gz") as packed:
+            packed.extractall(stage / "unpacked", filter="data")
+        prepared = stage / "unpacked/python"
+        if not (prepared / "bin/python3.12").is_file():
+            raise RuntimeError("Downloaded Python archive lacks the interpreter")
+        prepared.rename(destination)
+    return python
 
 
 def ensure_dependencies() -> None:
@@ -152,9 +227,7 @@ def ensure_osm() -> None:
 
 def ensure_python() -> None:
     if not (ROOT / ".venv/bin/python").is_file():
-        executable = os.environ.get("BP_SIM_PYTHON") or shutil.which("python3.12")
-        if not executable:
-            raise RuntimeError("Install Python 3.12 before preparing the simulator")
+        executable = os.environ.get("BP_SIM_PYTHON") or str(ensure_local_python())
         run(executable, "-m", "venv", str(ROOT / ".venv"))
     python = str(ROOT / ".venv/bin/python")
     for requirements, hashed in (("requirements-orbits.txt", True),
@@ -211,10 +284,10 @@ def ensure_native() -> None:
 def main() -> None:
     if not (ROOT / "tools/simulator_cli.py").is_file():
         raise RuntimeError("Run setup from the simulator Git project")
-    required = ("git", "g++", "cmake", "ninja", "sumo", "netconvert", "pkg-config", "zstd")
-    missing = [name for name in required if not shutil.which(name)]
-    if missing:
-        raise RuntimeError("Install system build tools before setup: " + ", ".join(missing))
+    ensure_supported_host()
+    ensure_system_packages()
+    if not (ROOT / ".venv/bin/python").is_file() and not os.environ.get("BP_SIM_PYTHON"):
+        ensure_local_python()
     ensure_dependencies()
     ensure_osm()
     ensure_python()

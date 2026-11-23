@@ -2,15 +2,15 @@
 
 ## Podporované prostredie
 
-Inštalačný postup je určený pre Ubuntu 24.04 x86_64 s Pythonom 3.12 a grafickým prostredím. Repozitár `PinKiePieSK/BP-VANET-LEO-simulator` a závislostný archív sú verejne dostupné; GitHub účet sa nevyžaduje. Windows, macOS a ARM nie sú overené cieľové platformy.
+Inštalačný postup je určený pre Ubuntu 24.04 alebo 26.04 x86_64 s grafickým prostredím. Repozitár `PinKiePieSK/BP-VANET-LEO-simulator` a archívy sú verejne dostupné; GitHub účet sa nevyžaduje. Windows, macOS, ARM a iné verzie Linuxu nie sú podporované týmto inštalátorom.
 
 ## Prvá inštalácia
 
-1. Nainštaluj systémové závislosti:
+1. Na naklonovanie potrebuješ Git a na spustenie prípravy systémový `python3`. V bežnej inštalácii Ubuntu je Python už prítomný. Ak Git alebo Python chýba, nainštaluj ich:
 
    ```bash
    sudo apt-get update
-   sudo apt-get install git build-essential cmake ninja-build pkg-config python3.12 python3.12-venv python3.12-dev sumo sumo-tools libxml2-dev libgsl-dev libsqlite3-dev libboost-all-dev libssl-dev zstd osmium-tool firefox
+   sudo apt-get install git python3
    ```
 
 2. Naklonuj repozitár do zvoleného adresára:
@@ -28,9 +28,9 @@ Inštalačný postup je určený pre Ubuntu 24.04 x86_64 s Pythonom 3.12 a grafi
    .venv/bin/python scripts/launch_local.py --check
    ```
 
-`setup_single_folder.py` prevezme pripnutý archív závislostí z určeného GitHub vydania a pred rozbalením skontroluje SHA-256. Potom vytvorí Python prostredie, zostaví Vanetza a ns-3.38/SNS-3 3.38, vykoná preflight a vytvorí ikonu na ploche. Kompilácia pri prvej inštalácii môže trvať niekoľko minút. Názov adresára `BP-Simulator` je len príklad; skripty odvodzujú koreň projektu zo svojho umiestnenia.
+`setup_single_folder.py` skontroluje systémové balíky a chýbajúce nainštaluje cez `sudo apt-get`; heslo sa zadáva iba do terminálu. Stiahne samostatný Python 3.12.14 a pripnutý archív závislostí, oba overí SHA-256 pred rozbalením. Potom vytvorí `.venv`, zostaví Vanetza a ns-3.38/SNS-3 3.38, vykoná preflight a vytvorí ikonu na ploche. Prvé zostavenie môže trvať dlhšie podľa výkonu počítača. Názov adresára `BP-Simulator` je len príklad; skripty odvodzujú koreň projektu zo svojho umiestnenia.
 
-Zdroj aplikácie pochádza z Git commitu. GitHub vydanie dodáva zostaviteľné závislosti, Python wheels a mapové dáta. Inštalácia z archívu zdrojov bez adresára `.git` nepodporuje automatický updater.
+Zdroj aplikácie pochádza z Git commitu. GitHub vydanie projektu dodáva zostaviteľné závislosti, Python wheels, mapové dáta a prenosný Python pôvodom z [python-build-standalone 20260825](https://github.com/astral-sh/python-build-standalone/releases/tag/20260825). Inštalátor pripína oba presné archívy a ich kontrolné súčty. Inštalácia z archívu zdrojov bez adresára `.git` nepodporuje automatický updater.
 
 ## Spustenie a scenáre
 
